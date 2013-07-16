@@ -106,7 +106,7 @@ if __name__ == "__main__":
     # Open first the NY spreadsheet.
     xl = win32com.client.Dispatch("Excel.Application")
     xl.Visible = 1
-    wb_tmp = xl.Workbooks.Open(os.getcwd() + NY_NAV['filename'])
+    wb_tmp = xl.Workbooks.Open(os.path.join(os.getcwd(), NY_NAV['filename']))
     ws_tmp = wb_tmp.Sheets(1)
 
     # We have to insert some columns to make the format match the US results.
@@ -119,13 +119,13 @@ if __name__ == "__main__":
     ws_tmp.Range(ws_tmp.Range("X65536").End(xlUp), ws_tmp.Range("A2")).Copy()
 
     # Now open the US spreadsheet and append the NY results, closing the NY file afterwards.
-    wb = xl.Workbooks.Open(os.getcwd() + US_NAV['filename'])
+    wb = xl.Workbooks.Open(os.path.join(os.getcwd(),US_NAV['filename']))
     ws = wb.Sheets(1)
     ws.Range("A65536").End(xlUp).GetOffset(1, 0).Select()
     ws.Paste()
 
     # Save merged file
-    wb.SaveAs(Filename=os.getcwd() + r"\Results.xlsx", FileFormat=xlOpenXMLWorkbook, CreateBackup=False)
+    wb.SaveAs(Filename=os.path.join(os.getcwd(),r"\Results.xlsx"), FileFormat=xlOpenXMLWorkbook, CreateBackup=False)
 
     # Close and remove the old ones.
     xl.CutCopyMode = False # Clear clipboard so we can close spreadsheet without complaint.
