@@ -98,10 +98,10 @@ if __name__ == "__main__":
     b = create_browser()
 
     t = PackagesTable("Package", "Org", "Pack Code", "Mail Date", "FF Date")
-    ( us_table,  us_ff_str) = download_package_list(b, NY_NAV)
+    ( us_table,  us_ff_str) = download_package_list(b, US_NAV)
     for row in us_table: t.addrecord(row)
 
-    (ny_table, ny_ff_str) = download_package_list(b, US_NAV)
+    (ny_table, ny_ff_str) = download_package_list(b, NY_NAV)
     for row in ny_table: t.addrecord(row)
 
     # Save a table of every effort, even the ones we don't care about.

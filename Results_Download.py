@@ -125,7 +125,7 @@ if __name__ == "__main__":
     ws.Paste()
 
     # Save merged file
-    wb.SaveAs(Filename=os.path.join(os.getcwd(),r"\Results.xlsx"), FileFormat=xlOpenXMLWorkbook, CreateBackup=False)
+    wb.SaveAs(Filename=os.path.join(os.getcwd(),r"Results.xlsx"), FileFormat=xlOpenXMLWorkbook, CreateBackup=False)
 
     # Close and remove the old ones.
     xl.CutCopyMode = False # Clear clipboard so we can close spreadsheet without complaint.
