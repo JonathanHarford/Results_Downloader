@@ -3,6 +3,7 @@ test/
 *.txt
 *.csv
 *.xls
+*.xlsx
 logininfo.*
 
 #################
