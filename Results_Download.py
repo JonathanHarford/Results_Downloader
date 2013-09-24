@@ -1,13 +1,8 @@
-'''
-Created on Mar 27, 2012
-
-@author: jonathanharford
-'''
-
 import sys
 import os.path
 from time import sleep
-import win32com.client
+import pandas as pd
+# import win32com.client
 import selenium
 from selenium import webdriver
 
@@ -15,6 +10,8 @@ from excelEnnumerations import *
 from logininfo import *
 
 def download_effort_results(nav, efforts_to_download):
+    if len(efforts_to_download) == 0:
+        return False
 
     fp = webdriver.FirefoxProfile()
     fp.set_preference("browser.download.folderList", 2)
@@ -78,7 +75,7 @@ def download_effort_results(nav, efforts_to_download):
         try:
             filesize = os.path.getsize(nav['filename'])
             if filesize > 1:
-                print(filesize)
+                ##print(filesize)
                 break
         except WindowsError:
             pass
@@ -88,47 +85,42 @@ def download_effort_results(nav, efforts_to_download):
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
+        filename = "testdata"
         print __doc__
         actually_download = False
     else: actually_download = True
 
     if actually_download:
-
+        filename = sys.argv[1]
         # Get list of which efforts we want results for
-        packages_to_download = [line.strip() for line in open(sys.argv[1], 'rb').readlines()]
+        packages_to_download = [line.strip().split("\t") for line in open(filename, 'rb').readlines()]
+
+        us_pkgs_download = [pkg for org, pkg in packages_to_download if org==US_NAV['org']]
+        ny_pkgs_download = [pkg for org, pkg in packages_to_download if org==NY_NAV['org']]
 
         # Download the results for US and NY.
         # We could do the downloads simultaneously (threads), but that causes its own troubles.
 
-        download_effort_results(US_NAV, packages_to_download)
-        download_effort_results(NY_NAV, packages_to_download)
+        download_effort_results(US_NAV, us_pkgs_download)
+        download_effort_results(NY_NAV, ny_pkgs_download)
 
-    # Open first the NY spreadsheet.
-    xl = win32com.client.Dispatch("Excel.Application")
-    xl.Visible = 1
-    wb_tmp = xl.Workbooks.Open(os.path.join(os.getcwd(), NY_NAV['filename']))
-    ws_tmp = wb_tmp.Sheets(1)
 
-    # We have to insert some columns to make the format match the US results.
-    xl.CutCopyMode = False
-    ws_tmp.Range("N1").EntireColumn.Insert()
-    ws_tmp.Range("T1").EntireColumn.Insert()
+    df =           pd.read_excel("USO%5FExport%5FMail%5FTable.xls",
+                                 "USO_Export_Mail_Table",
+                                 parse_dates=['FF Date','Mail Date'],
+                                 index_col=1)
+    # Remember the right order of columns, because append alphasorts:
+    col_order = df.columns
+    df = df.append(pd.read_excel("USON%5FExport%5FMail%5FTable.xls",
+                                 "USON_Export_Mail_Table",
+                                 parse_dates=['FF Date','Mail Date'],
+                                 index_col=1))
+    df = df[col_order] # Fix the order of cols.
+    # df = df.set_index("Mail Code", verify_integrity=True)
+    # df = df[['Mail Code','DM Donors','DM Revenue','Descript','FF Date','Mail Date','ND Count','Package','Qty Mail','TM Donors','TM Revenue','Total Donors','Total Revenue','Web Donors','Web Revenue']]
 
-    # Copy the NY results.
-    # ws_tmp.Range(ws_tmp.Range("Y65536").End(xlUp), ws_tmp.Range("A2")).Copy() # No.
-    ws_tmp.Range(ws_tmp.Range("X65536").End(xlUp), ws_tmp.Range("A2")).Copy()
+    df.to_csv(os.path.splitext(filename)[0] + '.csv', encoding='utf-8', index_label='Mail Code')
+    # VERY slow compared to csv:
+    #df.to_excel(os.path.splitext(filename)[0] + ".xlsx")
 
-    # Now open the US spreadsheet and append the NY results, closing the NY file afterwards.
-    wb = xl.Workbooks.Open(os.path.join(os.getcwd(),US_NAV['filename']))
-    ws = wb.Sheets(1)
-    ws.Range("A65536").End(xlUp).GetOffset(1, 0).Select()
-    ws.Paste()
-
-    # Save merged file
-    wb.SaveAs(Filename=os.path.join(os.getcwd(),r"Results.xlsx"), FileFormat=xlOpenXMLWorkbook, CreateBackup=False)
-
-    # Close and remove the old ones.
-    xl.CutCopyMode = False # Clear clipboard so we can close spreadsheet without complaint.
-    wb_tmp.Close(False)
-    wb.Close(False)
 

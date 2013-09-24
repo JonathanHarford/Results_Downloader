@@ -1,5 +1,6 @@
 archived/
 test/
+pandas/
 *.txt
 *.csv
 *.xls

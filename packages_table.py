@@ -78,10 +78,6 @@ class PackagesTable(list):
                 continue
 
 
-        self.addfield(2,"Eff")
-        self.addfield(6,"EffType")
-        self.addfield(7,"Age")
-        self.addfield(8,"Results Group")
         age_6m  = set()
         age_12m = set()
 
@@ -105,20 +101,13 @@ class PackagesTable(list):
             elif 365 > age > 180:
                 age_12m.add(eff)
 
+        # Classify _efforts_ by age (not merely packages, which can vary).
         for rec in self:
-            pkg, org, eff, packcode, maildate, ffdate, efftype, age, resgrp = rec
-
+            eff, age = rec[2], rec[7]
             if   eff in age_6m  and age < 365:
-                resgrp = "6m"
+                rec[8] = "6m"
             elif eff in age_12m and age < 600:
-                resgrp = "12m"
-
-            rec[8] = resgrp
-
-
-
-
-
+                rec[8] = "12m"
 
     def writetocsv(self, filename):
         writer = self.UnicodeWriter(open(filename, 'wb'))

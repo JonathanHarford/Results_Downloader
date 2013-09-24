@@ -16,13 +16,11 @@ import datetime
 import codecs
 
 # Lovely packages others have written
-import win32com.client
-import cPickle
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
-from packages_table import PackagesTable
 
 # My own modules
+from packages_table import PackagesTable
 from excelEnnumerations import *
 from logininfo import *
 
@@ -70,13 +68,13 @@ def download_package_list(b, nav):
     for package, packcode, mailmonth, mailday, mailyear in findall:
         maildate = datetime.date(int(mailyear), int(mailmonth), int(mailday))
         if packcode == u'\xa0': packcode = ""     # Why isn't packcode "&nbsp;"?
-        table.append((package, nav['org'], packcode, maildate, ff_date))
+        table.append((package, nav['org'], "", packcode, maildate, ff_date, "", "", ""))
     return (table, ff_date.isoformat())
 
 def download_fake_package_list(b, nav):
     """For testing purposes. The download of data works fine, so instead of
     going to the website every time, we can use this function instead."""
-
+    import cPickle
 # # # How to pickle these tables:
 # with file("us_table.pickle", "wb") as f:  cPickle.dump(us_table, f)
 # with file("ny_table.pickle", "wb") as f: cPickle.dump(ny_table, f)
@@ -97,7 +95,15 @@ if __name__ == "__main__":
 
     b = create_browser()
 
-    t = PackagesTable("Package", "Org", "Pack Code", "Mail Date", "FF Date")
+    t = PackagesTable("Package",
+                      "Org",
+                      "Eff",
+                      "Pack Code",
+                      "Mail Date",
+                      "FF Date",
+                      "EffType",
+                      "Age",
+                      "Results Group")
     ( us_table,  us_ff_str) = download_package_list(b, US_NAV)
     for row in us_table: t.addrecord(row)
 
@@ -131,7 +137,7 @@ if __name__ == "__main__":
     with open(filename, "w") as f:
         for rec in t:
             if rec[8] == "6m":
-                f.write(rec[0] + "\n")
+                f.write(rec[1] + "\t" + rec[0] + "\n")
 
     # Save a list of all efforts between 6 and 12 months old.
     filename = "12m " + \
@@ -142,7 +148,7 @@ if __name__ == "__main__":
     with open(filename, "w") as f:
         for rec in t:
             if rec[8] == "12m":
-                f.write(rec[0] + "\n")
+                f.write(rec[1] + "\t" + rec[0] + "\n")
 
     # Save a list of all DFLN efforts.
     filename = "DFLN " + \
@@ -153,6 +159,6 @@ if __name__ == "__main__":
     with open(filename, "w") as f:
         for rec in t:
             if rec[6] in ["PI", "FSI", "NI"] and (rec[4].year >= 2011) :
-                f.write(rec[0] + "\n")
+                f.write(rec[1] + "\t" + rec[0] + "\n")
 
     if not fake_browser: b.quit()
