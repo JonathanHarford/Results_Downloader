@@ -5,6 +5,8 @@ pandas/
 *.csv
 *.xls
 *.xlsx
+*.ipynb
+*.bat
 logininfo.*
 
 #################

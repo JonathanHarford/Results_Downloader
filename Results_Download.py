@@ -1,9 +1,11 @@
 import sys
 import os.path
-from time import sleep
+import os
+from time import strftime
+
 import pandas as pd
-# import win32com.client
-import selenium
+#import win32com.client
+#import selenium
 from selenium import webdriver
 
 from excelEnnumerations import *
@@ -83,6 +85,14 @@ def download_effort_results(nav, efforts_to_download):
     print("Closing browser...")
     # b.quit()
 
+    df =   pd.read_excel(nav['filename'],
+                         nav['tabname'],
+                         parse_dates=['FF Date','Mail Date'],
+                         index_col=1)
+    os.rename(nav['filename'], nav['tabname'] + ' ' + strftime('''%Y%m%d-%H%M%S''') + '.xls')
+
+    return df
+
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         filename = "testdata"
@@ -101,21 +111,15 @@ if __name__ == "__main__":
         # Download the results for US and NY.
         # We could do the downloads simultaneously (threads), but that causes its own troubles.
 
-        download_effort_results(US_NAV, us_pkgs_download)
-        download_effort_results(NY_NAV, ny_pkgs_download)
+    df =           download_effort_results(US_NAV, us_pkgs_download)
 
-
-    df =           pd.read_excel("USO%5FExport%5FMail%5FTable.xls",
-                                 "USO_Export_Mail_Table",
-                                 parse_dates=['FF Date','Mail Date'],
-                                 index_col=1)
-    # Remember the right order of columns, because append alphasorts:
+    # Remember the right order of columns, because 'append' alphasorts:
     col_order = df.columns
-    df = df.append(pd.read_excel("USON%5FExport%5FMail%5FTable.xls",
-                                 "USON_Export_Mail_Table",
-                                 parse_dates=['FF Date','Mail Date'],
-                                 index_col=1))
+
+    df = df.append(download_effort_results(NY_NAV, ny_pkgs_download))
+
     df = df[col_order] # Fix the order of cols.
+
     # df = df.set_index("Mail Code", verify_integrity=True)
     # df = df[['Mail Code','DM Donors','DM Revenue','Descript','FF Date','Mail Date','ND Count','Package','Qty Mail','TM Donors','TM Revenue','Total Donors','Total Revenue','Web Donors','Web Revenue']]
 
