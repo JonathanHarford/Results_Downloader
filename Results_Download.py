@@ -11,6 +11,17 @@ from selenium import webdriver
 from excelEnnumerations import *
 from logininfo import *
 
+def series_to_iso8601(ser):
+    """Return a series of ISO 8601 dates from a series of datetimes."""
+
+    def to_iso8601(x):
+        if x > pd.datetime(1900,1,1):
+            return x.strftime('%Y-%m-%d')
+        else:
+            return ''
+
+    return ser.apply(to_iso8601)
+
 def download_effort_results(nav, efforts_to_download):
     if len(efforts_to_download) == 0:
         return False
@@ -123,8 +134,13 @@ if __name__ == "__main__":
     # df = df.set_index("Mail Code", verify_integrity=True)
     # df = df[['Mail Code','DM Donors','DM Revenue','Descript','FF Date','Mail Date','ND Count','Package','Qty Mail','TM Donors','TM Revenue','Total Donors','Total Revenue','Web Donors','Web Revenue']]
 
+    df['Mail Date']  = series_to_iso8601(df['Mail Date'])
+    df['FF Date']    = series_to_iso8601(df['FF Date'])
+    df['First Date'] = series_to_iso8601(df['First Date'])
+    df['Pack Date'] = series_to_iso8601(df['Pack Date'])
+
     df.to_csv(os.path.splitext(filename)[0] + '.csv', encoding='utf-8', index_label='Mail Code')
-    # VERY slow compared to csv:
+    # XLSX is VERY slow compared to csv:
     #df.to_excel(os.path.splitext(filename)[0] + ".xlsx")
 
 
