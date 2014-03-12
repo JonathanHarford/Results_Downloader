@@ -9,7 +9,6 @@ import pandas as pd
 from selenium import webdriver
 
 from excelEnnumerations import *
-#from append_xls import *
 from logininfo import *
 
 def series_to_iso8601(ser):
