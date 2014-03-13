@@ -48,14 +48,9 @@ def download_effort_results(nav, efforts_to_download):
     # Page: "HOME"
     ## sleep(5) # Pages taking too long too load -- script breaking!
     assert "HOME" in b.title
-    b.find_element_by_id(nav['reports_lnk']).click()
 
-    # Page: "Reports Home"
-    ## sleep(5) # Pages taking too long too load -- script breaking!
-    assert "Reports Home" in b.title
-    b.find_element_by_id(nav['mtre_lnk']).click()
-
-    # Page: "Reports Home"
+    # Just go straight to the Mail Table Results Export page.
+    b.get(nav['report_url'])
     assert "Untitled Page" in b.title
 
     # Let's tick the checkboxes for EVERY effort whose results we'd like to download.

@@ -54,13 +54,7 @@ def download_package_list(b, nav):
     match = re.search("Date on File: (\d\d)-(\d\d)-(\d\d\d\d)", b.page_source)
     ff_date = datetime.date(int(match.group(3)), int(match.group(1)), int(match.group(2)))
 
-    b.find_element_by_id(nav['reports_lnk']).click()
-
-    # Page: "Reports Home"
-    assert "Reports Home" in b.title
-    b.find_element_by_id(nav['mtre_lnk']).click()
-
-    # Page: "Reports Home"
+    b.get(nav['report_url'])
     assert "Untitled Page" in b.title
 
     findall = re.findall(r"""<span[^>]*>([^<]*)</span>\s*</td><td>([^<]*)</td><td>(\d+)/(\d+)/(\d+)</td>""", b.page_source)
