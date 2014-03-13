@@ -1,23 +1,19 @@
+# TODO
+# * There's only on sheet in each xls. We shouldn't need to store the tabname.
+# * Script should attempt download until success
+# * Downloads from both sites shouldn't be necessary
+# * Store login in JSON file?
+
 import sys
 import os.path
 import os
 from time import strftime
 
-import pandas as pd
-#import win32com.client
-#import selenium
 from selenium import webdriver
 
 from excelEnnumerations import *
 from logininfo import *
-
-def series_to_iso8601(ser):
-    """Return a series of ISO 8601 dates from a series of datetimes."""
-
-    def to_iso8601(x):
-        return x.strftime('%Y-%m-%d') if (x > pd.datetime(1900,1,1)) else ''
-
-    return ser.apply(to_iso8601)
+from append_xls import *
 
 def download_effort_results(nav, efforts_to_download):
     if len(efforts_to_download) == 0:
@@ -91,15 +87,7 @@ def download_effort_results(nav, efforts_to_download):
             pass
 
     print("Closing browser...")
-    # b.quit()
-
-    df =   pd.read_excel(nav['filename'],
-                         nav['tabname'],
-                         parse_dates=['FF Date','Mail Date'],
-                         index_col=1)
-    os.rename(nav['filename'], nav['tabname'] + ' ' + strftime('''%Y%m%d-%H%M%S''') + '.xls')
-
-    return df
+    b.quit()
 
 if __name__ == "__main__":
 
@@ -111,25 +99,20 @@ if __name__ == "__main__":
     ny_pkgs_download = [pkg for org, pkg in packages_to_download if org==NY_NAV['org']]
 
     # Download the results for US and NY.
-    # We could do the downloads simultaneously (threads), but that causes its own troubles.
+    # We could do the downloads simultaneously (threads), but that causes its own troubles. (I wish I could remember what they are.)
 
-    df_us = download_effort_results(US_NAV, us_pkgs_download)
-    df_ny = download_effort_results(NY_NAV, ny_pkgs_download)
+    # Download results to files
+    download_effort_results(US_NAV, us_pkgs_download)
+    download_effort_results(NY_NAV, ny_pkgs_download)
 
-    # Remember the right order of columns, because 'append' alphasorts:
-    col_order = df_us.columns
+    # Rename results files
+    now_str = strftime('''%Y%m%d-%H%M%S''')
+    us_filename = 'USO_US Results ' + now_str + '.xls'
+    ny_filename = 'USO_NY Results ' + now_str + '.xls'
+    os.rename(US_NAV['filename'], us_filename)
+    os.rename(NY_NAV['filename'], ny_filename)
 
-    df = df_us.append(df_ny)
-
-    df = df[col_order] # Fix the order of cols.
-
-    df['Mail Date']  = series_to_iso8601(df['Mail Date'])
-    df['FF Date']    = series_to_iso8601(df['FF Date'])
-    df['First Date'] = series_to_iso8601(df['First Date'])
-    df['Pack Date'] = series_to_iso8601(df['Pack Date'])
-
-    df.to_csv(os.path.splitext(filename)[0] + '.csv', encoding='utf-8', index_label='Mail Code')
-    # We could export to XLSX instead but it's much slower:
-    # df.to_excel(os.path.splitext(filename)[0] + ".xlsx")
+    # Merge the two files
+    append_xls(us_filename, ny_filename, filename)
 
 
