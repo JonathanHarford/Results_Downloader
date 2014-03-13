@@ -37,7 +37,7 @@ def download_effort_results(nav, efforts_to_download):
     b.implicitly_wait(120)
 
     print("Browsing to " + nav['URL'])
-    b.get(nav['URL']) # Load page
+    b.get(nav['report_url']) # Load page
 
     # Page: Login
     assert "Untitled Page" in b.title
@@ -45,12 +45,6 @@ def download_effort_results(nav, efforts_to_download):
     b.find_element_by_id(nav['password']).send_keys(PASSWORD)
     b.find_element_by_id(nav['login_btn']).click()
 
-    # Page: "HOME"
-    ## sleep(5) # Pages taking too long too load -- script breaking!
-    assert "HOME" in b.title
-
-    # Just go straight to the Mail Table Results Export page.
-    b.get(nav['report_url'])
     assert "Untitled Page" in b.title
 
     # Let's tick the checkboxes for EVERY effort whose results we'd like to download.
