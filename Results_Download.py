@@ -1,12 +1,13 @@
 # TODO
-# * There's only on sheet in each xls. We shouldn't need to store the tabname.
 # * Script should attempt download until success
+# * What to do if there's already a USO_EXPORT_MAIL_TABLE.xls in the dir?
 # * Downloads from both sites shouldn't be necessary
 # * Store login in JSON file?
 
 import sys
 import os.path
 import os
+import time
 from time import strftime
 
 from selenium import webdriver
@@ -14,6 +15,9 @@ from selenium import webdriver
 from excelEnnumerations import *
 from logininfo import *
 from append_xls import *
+
+DOWNLOAD_ATTEMPT_DURATION = 120 # Give each download this long (seconds) to complete.
+NUM_DOWNLOAD_ATTEMPTS = 10 # Attempt each download this many times.
 
 def download_effort_results(nav, efforts_to_download):
     if len(efforts_to_download) == 0:
@@ -72,19 +76,47 @@ def download_effort_results(nav, efforts_to_download):
     # Click "Export Records"
     print("Exporting...")
 
-    b.find_element_by_id(nav['export_btn']).click()
+    file_is_downloaded = False
 
-    # Unfortunately, there doesn't seem to be a way to babysit the download of the file with Selenium.
+    for try_num in range(NUM_DOWNLOAD_ATTEMPTS):
 
-    print("Waiting for file to exist in directory...")
-    while 1:
+        # Delete partially downloaded files
         try:
-            filesize = os.path.getsize(nav['filename'])
-            if filesize > 1:
-                ##print(filesize)
-                break
+            os.remove(nav['filename'] + '.part')
         except WindowsError:
             pass
+
+        # Delete previously downloaded files
+        try:
+            os.remove(nav['filename'])
+        except WindowsError:
+            pass
+
+        # Start the timer
+        attempt_start_time = time.clock()
+        attempt_end_time = attempt_start_time + DOWNLOAD_ATTEMPT_DURATION
+
+        print('Download attempt {} at {}').format(try_num + 1, strftime('''%H:%M:%S'''))
+
+        b.find_element_by_id(nav['export_btn']).click()
+
+        # Unfortunately, there doesn't seem to be a way to babysit the download of the file with Selenium.
+
+        while time.clock() < attempt_end_time:
+            try:
+                filesize = os.path.getsize(nav['filename'])
+                if filesize > 1:
+                    print('Download successful.')
+                    file_is_downloaded = True
+                    break
+            except WindowsError:
+                #sys.stdout.write('.')
+                pass
+
+        if file_is_downloaded:
+            break
+        else:
+            print('Timed out.')
 
     print("Closing browser...")
     b.quit()

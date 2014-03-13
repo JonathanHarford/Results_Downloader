@@ -11,7 +11,7 @@ def series_to_iso8601(ser):
     return ser.apply(to_iso8601)
 
 def append_xls(fname1, fname2, filename):
-    """Merges two spreadsheets into one."""
+    """Merges two single-sheet spreadsheets into one."""
 
     # Load results into dataframes
     with pd.ExcelFile(fname1) as xls:
@@ -29,6 +29,7 @@ def append_xls(fname1, fname2, filename):
 
     df = df[col_order] # Fix the order of cols.
 
+    # Dates are ugly unless we do this:
     df['Mail Date']  = series_to_iso8601(df['Mail Date'])
     df['FF Date']    = series_to_iso8601(df['FF Date'])
     df['First Date'] = series_to_iso8601(df['First Date'])
