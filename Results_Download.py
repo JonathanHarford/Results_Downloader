@@ -1,13 +1,13 @@
 # TODO
-# * Script should attempt download until success
-# * What to do if there's already a USO_EXPORT_MAIL_TABLE.xls in the dir?
 # * Downloads from both sites shouldn't be necessary
-# * Store login in JSON file?
+# * Begin processing of data
+# * Update to Python 3
 
 import sys
 import os.path
 import os
 import time
+import threading
 from time import strftime
 
 from selenium import webdriver
@@ -19,96 +19,106 @@ from append_xls import *
 DOWNLOAD_ATTEMPT_DURATION = 120 # Give each download this long (seconds) to complete.
 NUM_DOWNLOAD_ATTEMPTS = 10 # Attempt each download this many times.
 
-def download_effort_results(nav, efforts_to_download):
-    if len(efforts_to_download) == 0:
-        return False
+class Download_Effort_Results(threading.Thread):
 
-    fp = webdriver.FirefoxProfile()
-    fp.set_preference("browser.download.folderList", 2)
-    fp.set_preference("browser.download.manager.showWhenStarting", False)
+    def __init__(self, nav, efforts_to_download):
+        threading.Thread.__init__(self)
+        self.nav = nav
+        self.efforts_to_download = efforts_to_download
 
-    # Keep download bubble from appearing
-    fp.set_preference("browser.download.panel.shown", True)
-    fp.set_preference("browser.download.dir", os.getcwd())
-    fp.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/vnd.ms-excel")
+    def run(self):
+        nav = self.nav
+        efforts_to_download = self.efforts_to_download
 
-    print("Creating browser...")
-    b = webdriver.Firefox(firefox_profile=fp) # Get local session of Firefox
-    b.implicitly_wait(120)
+        if len(efforts_to_download) == 0:
+            return False
 
-    print("Browsing to " + nav['URL'])
-    b.get(nav['report_url']) # Load page
+        fp = webdriver.FirefoxProfile()
+        fp.set_preference("browser.download.folderList", 2)
+        fp.set_preference("browser.download.manager.showWhenStarting", False)
 
-    # Page: Login
-    assert "Untitled Page" in b.title
-    b.find_element_by_id(nav['username']).send_keys(USERNAME)
-    b.find_element_by_id(nav['password']).send_keys(PASSWORD)
-    b.find_element_by_id(nav['login_btn']).click()
+        # Keep download bubble from appearing
+        fp.set_preference("browser.download.panel.shown", True)
+        fp.set_preference("browser.download.dir", os.getcwd())
+        fp.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/vnd.ms-excel")
 
-    assert "Untitled Page" in b.title
+        print("Creating browser...")
+        b = webdriver.Firefox(firefox_profile=fp) # Get local session of Firefox
+        b.implicitly_wait(120)
 
-    # Let's tick the checkboxes for EVERY effort whose results we'd like to download.
-    b.implicitly_wait(0)
-    for effort_name in efforts_to_download:
-        my_xpath = "//span[text()='" + effort_name + "']/../../td/input"
-        try:
-            el = b.find_element_by_xpath(my_xpath)
-            el.click()
-            print("TICKED:    " + effort_name)
-        except:
-            print("NOT FOUND: " + effort_name)
-    b.implicitly_wait(120)
+        print("Browsing to " + nav['URL'])
+        b.get(nav['report_url']) # Load page
 
-    # Click "Add"
-    b.find_element_by_id(nav['add_btn']).click()
+        # Page: Login
+        assert "Untitled Page" in b.title
+        b.find_element_by_id(nav['username']).send_keys(USERNAME)
+        b.find_element_by_id(nav['password']).send_keys(PASSWORD)
+        b.find_element_by_id(nav['login_btn']).click()
 
-    # Click "Export Records"
-    print("Exporting...")
+        assert "Untitled Page" in b.title
 
-    file_is_downloaded = False
-
-    for try_num in range(NUM_DOWNLOAD_ATTEMPTS):
-
-        # Delete partially downloaded files
-        try:
-            os.remove(nav['filename'] + '.part')
-        except WindowsError:
-            pass
-
-        # Delete previously downloaded files
-        try:
-            os.remove(nav['filename'])
-        except WindowsError:
-            pass
-
-        # Start the timer
-        attempt_start_time = time.clock()
-        attempt_end_time = attempt_start_time + DOWNLOAD_ATTEMPT_DURATION
-
-        print('Download attempt {} at {}').format(try_num + 1, strftime('''%H:%M:%S'''))
-
-        b.find_element_by_id(nav['export_btn']).click()
-
-        # Unfortunately, there doesn't seem to be a way to babysit the download of the file with Selenium.
-
-        while time.clock() < attempt_end_time:
+        # Let's tick the checkboxes for EVERY effort whose results we'd like to download.
+        b.implicitly_wait(0)
+        for effort_name in efforts_to_download:
+            my_xpath = "//span[text()='" + effort_name + "']/../../td/input"
             try:
-                filesize = os.path.getsize(nav['filename'])
-                if filesize > 1:
-                    print('Download successful.')
-                    file_is_downloaded = True
-                    break
+                el = b.find_element_by_xpath(my_xpath)
+                el.click()
+                print("TICKED:    " + effort_name)
+            except:
+                print("NOT FOUND: " + effort_name)
+        b.implicitly_wait(120)
+
+        # Click "Add"
+        b.find_element_by_id(nav['add_btn']).click()
+
+        # Click "Export Records"
+        print("Exporting...")
+
+        file_is_downloaded = False
+
+        for try_num in range(NUM_DOWNLOAD_ATTEMPTS):
+
+            # Delete partially downloaded files
+            try:
+                os.remove(nav['filename'] + '.part')
             except WindowsError:
-                #sys.stdout.write('.')
                 pass
 
-        if file_is_downloaded:
-            break
-        else:
-            print('Timed out.')
+            # Delete previously downloaded files
+            try:
+                os.remove(nav['filename'])
+            except WindowsError:
+                pass
 
-    print("Closing browser...")
-    b.quit()
+            # Start the timer
+            attempt_start_time = time.clock()
+            attempt_end_time = attempt_start_time + DOWNLOAD_ATTEMPT_DURATION
+
+            print('Download attempt {} at {}').format(try_num + 1, strftime('''%H:%M:%S'''))
+
+            b.find_element_by_id(nav['export_btn']).click()
+
+            # Unfortunately, there doesn't seem to be a way to babysit the download of the file with Selenium.
+
+            while time.clock() < attempt_end_time:
+                try:
+                    filesize = os.path.getsize(nav['filename'])
+                    if filesize > 1:
+                        print('Download successful.')
+                        file_is_downloaded = True
+                        break
+                except WindowsError:
+                    #sys.stdout.write('.')
+                    pass
+
+            if file_is_downloaded:
+                break
+            else:
+                print('Timed out.')
+
+        print("Closing browser...")
+        b.quit()
 
 if __name__ == "__main__":
 
@@ -119,17 +129,20 @@ if __name__ == "__main__":
     us_pkgs_download = [pkg for org, pkg in packages_to_download if org==US_NAV['org']]
     ny_pkgs_download = [pkg for org, pkg in packages_to_download if org==NY_NAV['org']]
 
-    # Download the results for US and NY.
-    # We could do the downloads simultaneously (threads), but that causes its own troubles. (I wish I could remember what they are.)
-
     # Download results to files
-    download_effort_results(US_NAV, us_pkgs_download)
-    download_effort_results(NY_NAV, ny_pkgs_download)
+    t1 = Download_Effort_Results(US_NAV, us_pkgs_download)
+    t2 = Download_Effort_Results(NY_NAV, ny_pkgs_download)
+
+    t1.start()
+    t2.start()
+
+    while threading.activeCount() > 1:
+        pass
 
     # Rename results files
     now_str = strftime('''%Y%m%d-%H%M%S''')
-    us_filename = 'USO_US Results ' + now_str + '.xls'
-    ny_filename = 'USO_NY Results ' + now_str + '.xls'
+    us_filename = 'US Results ' + now_str + '.xls'
+    ny_filename = 'NY Results ' + now_str + '.xls'
     os.rename(US_NAV['filename'], us_filename)
     os.rename(NY_NAV['filename'], ny_filename)
 
