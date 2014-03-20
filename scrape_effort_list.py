@@ -1,28 +1,14 @@
-'''
-Package_List_Download
-@author: jonathanharford
-
-TODO:
-* Split into modules, classes, functions
-* "Attempting results download" "Reattempting results download (2)"
-'''
-
 # Standard library
-import sys
 import os
-import argparse
 import re
 import datetime
-import codecs
 
 # Lovely packages others have written
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
 
 # My own modules
 from packages_table import PackagesTable
-from excelEnnumerations import *
-from logininfo import *
+from config import USERNAME, PASSWORD, US_NAV, NY_NAV
 
 def create_browser():
     fp = webdriver.FirefoxProfile()
@@ -65,27 +51,7 @@ def download_package_list(b, nav):
         table.append((package, nav['org'], "", packcode, maildate, ff_date, "", "", ""))
     return (table, ff_date.isoformat())
 
-def download_fake_package_list(b, nav):
-    """For testing purposes. The download of data works fine, so instead of
-    going to the website every time, we can use this function instead."""
-    import cPickle
-# # # How to pickle these tables:
-# with file("us_table.pickle", "wb") as f:  cPickle.dump(us_table, f)
-# with file("ny_table.pickle", "wb") as f: cPickle.dump(ny_table, f)
-
-    if   nav==NY_NAV:
-        with file("test/us_table.pickle", "rb") as f:
-            return (cPickle.load(f), u'2013-04-24')
-    elif nav==US_NAV:
-        with file("test/ny_table.pickle","rb") as f:
-            return (cPickle.load(f), u'2013-04-22')
-
 if __name__ == "__main__":
-
-    fake_browser = "no_browser" in sys.argv
-    if fake_browser:
-        create_browser = lambda : False
-        download_package_list = download_fake_package_list
 
     b = create_browser()
 
@@ -98,11 +64,16 @@ if __name__ == "__main__":
                       "EffType",
                       "Age",
                       "Results Group")
-    ( us_table,  us_ff_str) = download_package_list(b, US_NAV)
-    for row in us_table: t.addrecord(row)
+    
+    (us_table, us_ff_str) = download_package_list(b, US_NAV)
+    for row in us_table:
+        t.addrecord(row)
 
     (ny_table, ny_ff_str) = download_package_list(b, NY_NAV)
-    for row in ny_table: t.addrecord(row)
+    for row in ny_table:
+        t.addrecord(row)
+
+    b.quit()
 
     # Save a table of every effort, even the ones we don't care about.
     filename = "All Packages " + \
@@ -155,4 +126,4 @@ if __name__ == "__main__":
             if rec[6] in ["PI", "FSI", "NI"] and (rec[4].year >= 2011) :
                 f.write(rec[1] + "\t" + rec[0] + "\n")
 
-    if not fake_browser: b.quit()
+    

@@ -2,16 +2,15 @@ import csv
 import codecs
 import cStringIO
 import re
-import datetime
 
 EFFTYPES = {"A":"Prsp",
             "B":"Rnwl",
-            "D":"PI",
+            "D":"PIns",
             "F":"FSI",
             "G":"Rnwl",
             "H":"Rnwl",
-            "L":"NI",
-            "N":"NI",
+            "L":"NIns",
+            "N":"NIns",
             "P":"Prsp",
             "R":"Rnwl",
             "S":"Rnwl"}
@@ -68,10 +67,10 @@ class PackagesTable(list):
 
     def filter_efforts(self):
 
-        # Filter out packages that aren't "our" efforts
+        # Filter out packages that aren't [ABDFGHLNPRS]\d\d\d\s efforts
         recnum = 0
         while recnum < len(self):
-            if re.match(r"[ABDFGHLNPRS]\d\d\d\s", self[recnum][0]):
+            if re.match(r"[ABDFGHLNPRS]\d\d\d\s", self[recnum][0]): 
                 recnum = recnum + 1
             else:
                 del self[recnum]
