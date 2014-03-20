@@ -51,8 +51,7 @@ def download_package_list(b, nav):
         table.append((package, nav['org'], "", packcode, maildate, ff_date, "", "", ""))
     return (table, ff_date.isoformat())
 
-if __name__ == "__main__":
-
+def main():
     b = create_browser()
 
     t = PackagesTable("Package",
@@ -126,4 +125,8 @@ if __name__ == "__main__":
             if rec[6] in ["PI", "FSI", "NI"] and (rec[4].year >= 2011) :
                 f.write(rec[1] + "\t" + rec[0] + "\n")
 
+    
+
+if __name__ == "__main__":
+    main()
     

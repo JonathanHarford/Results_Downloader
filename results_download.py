@@ -2,6 +2,7 @@ import sys
 import os
 from time import strftime
 
+import scrape_effort_list
 from config import US_NAV, NY_NAV
 from append_xls import append_xls
 from download_from_site import download_from_site
@@ -9,8 +10,22 @@ from download_from_site import download_from_site
 
 if __name__ == "__main__":
 
-    filename = sys.argv[1]
-    # Get list of which efforts we want results for
+    scrape_effort_list.main() # Download effort lists
+    
+    # If no arguments, we're done once we've downloaded and processed the lists!
+    try:
+        effort_cat = sys.argv[1]
+    except IndexError:
+        sys.exit() 
+    
+    # Figure out which effort list matches the type of download we want to do (6m, 12m, or DFLN)
+    for filename in os.listdir('.'):
+        if filename.startswith(effort_cat):
+            break
+        else:
+            continue
+    
+    # Create list of which efforts we want results for
     packages_to_download = [line.strip().split("\t") for line in open(filename, 'rb').readlines()]
 
     us_pkgs_download = [pkg for org, pkg in packages_to_download if org==US_NAV['org']]
