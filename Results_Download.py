@@ -6,6 +6,7 @@ from config import US_NAV, NY_NAV
 from append_xls import append_xls
 from download_from_site import download_from_site
 
+
 if __name__ == "__main__":
 
     filename = sys.argv[1]
@@ -24,8 +25,8 @@ if __name__ == "__main__":
 
     # Rename results files
     now_str = strftime('''%Y%m%d-%H%M%S''')
-    us_filename = 'USO_US Results ' + now_str + '.xls'
-    ny_filename = 'USO_NY Results ' + now_str + '.xls'
+    us_filename = 'US Results ' + now_str + '.xls'
+    ny_filename = 'NY Results ' + now_str + '.xls'
     os.rename(US_NAV['filename'], us_filename)
     os.rename(NY_NAV['filename'], ny_filename)
 
