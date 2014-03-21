@@ -1,11 +1,13 @@
 Results_Downloader
 ==================
 
-A pair of scripts I use weekly to download results spreadsheets from two (very similar) websites.
+Scripts I use weekly to download and combine results spreadsheets from two (very similar) websites.
 
-Package_List_Download drives (via Selenium) a Firefox instance to the websites, scrapes a list of possible downloads, then filters the list into three sets: efforts that are 6 months old, efforts that are 12 months old, and DFLN efforts.
+results_download.py first runs scrape_effort_list.py to drive (via Selenium) a Firefox instance to the websites, scrape a list of possible downloads, then filter the list into three sets: efforts that are 6 months old, efforts that are 12 months old, and DFLN efforts.
 
-Results_Download takes a list of efforts (such as one of the files the above script outputs) as command-line input and downloads the results (xls) from the two sites. It then uses pandas to open these results spreadsheets in Excel and merge them into one xlsx file.
+If results_download.py was given an argument of "6m", "12m", or "DFNL", it inputs the relevant just-scraped list into download_from_site.py.
+
+Via selenium again, download_from_site.py downloads the results (xls) from the two sites. It then uses pandas to open these results spreadsheets in Excel and merge them into one xlsx file.
 
 TODO:
 =====
