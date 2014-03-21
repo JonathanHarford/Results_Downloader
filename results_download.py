@@ -2,11 +2,16 @@ import sys
 import os
 from time import strftime
 
+import pandas as pd
+
 import scrape_effort_list
 from config import US_NAV, NY_NAV
 from append_xls import append_xls
 from download_from_site import download_from_site
 
+def to_iso8601(x):
+    '''Convert a datetime to ISO8601 string.'''
+    return x.strftime('%Y-%m-%d') if (x > pd.datetime(1900,1,1)) else ''
 
 if __name__ == "__main__":
 
@@ -38,14 +43,34 @@ if __name__ == "__main__":
     download_from_site(US_NAV, us_pkgs_download)
     download_from_site(NY_NAV, ny_pkgs_download)
 
-    # Rename results files
+    # Rename results files, adding timestamp
     now_str = strftime('''%Y%m%d-%H%M%S''')
     us_filename = 'US Results ' + now_str + '.xls'
     ny_filename = 'NY Results ' + now_str + '.xls'
     os.rename(US_NAV['filename'], us_filename)
     os.rename(NY_NAV['filename'], ny_filename)
 
-    # Merge the two files
-    append_xls(us_filename, ny_filename, filename)
+    # Load results into dataframes
+    with pd.ExcelFile(us_filename) as xls:
+        tabname = xls.sheet_names[0]
+        df1 = xls.parse(tabname, index_col=1, parse_dates=['FF Date','Mail Date'])
+
+    with pd.ExcelFile(ny_filename) as xls:
+        tabname = xls.sheet_names[0]
+        df2 = xls.parse(tabname, index_col=1, parse_dates=['FF Date','Mail Date'])
+
+    # Remember the right order of columns, because 'append' alphasorts:
+    with df1.columns as col_order: 
+        df = df1.append(df2)
+        df = df[col_order] 
+    
+    # Dates are ugly unless we do this:
+    for col in ('Mail Date', 'FF Date', 'First Date', 'Pack Date'):
+        df[col]  = df[col].apply(to_iso8601)
+        
+    # Save merged results reports
+    df.to_csv(os.path.splitext(filename)[0] + '.csv', encoding='utf-8', index_label='Mail Code')
+    # We could export to XLSX instead but it's much slower:
+    # df.to_excel(os.path.splitext(filename)[0] + ".xlsx")
 
 

@@ -10,7 +10,8 @@ If results_download.py was given an argument of "6m", "12m", or "DFNL", it input
 Via selenium again, download_from_site.py downloads the results (xls) from the two sites. It then uses pandas to open these results spreadsheets in Excel and merge them into one xlsx file.
 
 TODO:
-=====
+-----
 
 * Downloads from both sites shouldn't be necessary
-* Use SQL instead of pandas?
+* Use SQL instead of pandas
+* Join CPP tables
