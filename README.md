@@ -13,5 +13,6 @@ TODO:
 -----
 
 * Downloads from both sites shouldn't be necessary
-* Use SQL instead of pandas
+* Use docopt
 * Join CPP tables
+* Use SQL instead of pandas?

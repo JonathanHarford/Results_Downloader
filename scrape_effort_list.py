@@ -122,7 +122,7 @@ def main():
 
     with open(filename, "w") as f:
         for rec in t:
-            if rec[6] in ["PI", "FSI", "NI"] and (rec[4].year >= 2011) :
+            if rec[6] in ["PIns", "FSI", "NIns"] and (rec[4].year >= 2011) :
                 f.write(rec[1] + "\t" + rec[0] + "\n")
 
     
