@@ -74,12 +74,16 @@ def main():
 
     b.quit()
 
+    # Let's make a list of all filenames as we create them. 
+    filenames = []
+
     # Save a table of every effort, even the ones we don't care about.
     filename = "All Packages " + \
                "US FF "  + us_ff_str + \
                " NY FF " + ny_ff_str + \
                ".csv"
 
+    filenames.append(filename)
     t.writetocsv(filename)
 
     t.filter_efforts()
@@ -90,6 +94,7 @@ def main():
                " NY FF " + ny_ff_str + \
                ".csv"
 
+    filenames.append(filename)
     t.writetocsv(filename)
 
     # Save a list of all efforts 6 months old and younger.
@@ -98,6 +103,7 @@ def main():
                " NY FF " + ny_ff_str + \
                ".txt"
 
+    filenames.append(filename)
     with open(filename, "w") as f:
         for rec in t:
             if rec[8] == "6m":
@@ -109,6 +115,7 @@ def main():
                " NY FF " + ny_ff_str + \
                ".txt"
 
+    filenames.append(filename)
     with open(filename, "w") as f:
         for rec in t:
             if rec[8] == "12m":
@@ -120,11 +127,13 @@ def main():
                " NY FF " + ny_ff_str + \
                ".txt"
 
+    filenames.append(filename)
     with open(filename, "w") as f:
         for rec in t:
             if rec[6] in ["PIns", "FSI", "NIns"] and (rec[4].year >= 2011) :
                 f.write(rec[1] + "\t" + rec[0] + "\n")
 
+    return filenames
     
 
 if __name__ == "__main__":
