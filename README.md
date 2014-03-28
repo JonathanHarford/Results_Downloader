@@ -14,7 +14,5 @@ TODO:
 
 * Downloads from both sites shouldn't be necessary
 * Logging
-* Python 3
-* Make config file a proper config file (instead of config.py)
 * Join CPP tables
 * Use SQL instead of pandas?

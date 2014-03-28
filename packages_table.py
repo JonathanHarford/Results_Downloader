@@ -1,38 +1,18 @@
 import csv
 import re
 
-EFFTYPES = {"A":"Prsp",
-            "B":"Rnwl",
-            "D":"PIns",
-            "F":"FSI",
-            "G":"Rnwl",
-            "H":"Rnwl",
-            "L":"NIns",
-            "N":"NIns",
-            "P":"Prsp",
-            "R":"Rnwl",
-            "S":"Rnwl"}
+# Load Configuration
+import json
+config = json.load(open('config.json'))
+EFFTYPES = config['EFFTYPES']
 
 class PackagesTable(list):
 
     def __init__(self, *args):
         self.fieldnames = list(args)
 
-#     def __str__(self):
-#         s = []
-#         for rec in self:
-#             for i in range(len(self.fieldnames)):
-#                 s.append(self.fieldnames[i] + ": " + rec[i])
-#             s.append("\n")
-#         return "\n".join(s)
-
     def addrecord(self, record):
         self.append(list(record))
-
-#     def addfield(self, pos, fieldname, defaultval=""):
-#         self.fieldnames.insert(pos,fieldname)
-#         for rec in self:
-#             rec.insert(pos, defaultval)
 
     def filter_efforts(self):
 
@@ -80,6 +60,5 @@ class PackagesTable(list):
     def writetocsv(self, filename):
         with open(filename, 'w') as f:
             writer = csv.writer(f, dialect=csv.excel, lineterminator='\n')
-            print(self.fieldnames)
             writer.writerow(self.fieldnames)
             writer.writerows(self)

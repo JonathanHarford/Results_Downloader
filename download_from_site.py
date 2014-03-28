@@ -2,9 +2,15 @@ import os
 import time
 from time import strftime
 
+
 from selenium import webdriver
 
-from config import USERNAME, PASSWORD
+# Load Configuration
+import json
+config = json.load(open('config.json'))
+USERNAME = config['USERNAME']
+PASSWORD = config['PASSWORD']
+
 #from excel_ennumerations import *
 
 def download_from_site(nav, efforts_to_download, DOWNLOAD_ATTEMPT_DURATION = 120, NUM_DOWNLOAD_ATTEMPTS = 10):

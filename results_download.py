@@ -10,8 +10,6 @@ Options:
   --efflist=<filename>  Use a particular list of efforts instead of a 
                         standard results set.
 """
-#  --config=<configfile> Use <configfile> (contains login info) instead 
-#                        of config.py.
 #  --quiet               print less text
 
 import sys
@@ -22,9 +20,15 @@ import pandas as pd
 from docopt import docopt
 
 import scrape_effort_list
-from config import US_NAV, NY_NAV
+
 from download_from_site import download_from_site
 # import join_cpps 
+
+# Load Configuration
+import json
+config = json.load(open('config.json'))
+US_NAV = config['US_NAV']
+NY_NAV = config['NY_NAV']
 
 def to_iso8601(x):
     '''Convert a datetime to ISO8601 string.'''

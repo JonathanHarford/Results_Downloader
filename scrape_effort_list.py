@@ -8,7 +8,14 @@ from selenium import webdriver
 
 # My own modules
 from packages_table import PackagesTable
-from config import USERNAME, PASSWORD, US_NAV, NY_NAV
+
+# Load Configuration
+import json
+config = json.load(open('config.json'))
+USERNAME = config['USERNAME']
+PASSWORD = config['PASSWORD']
+US_NAV = config['US_NAV']
+NY_NAV = config['NY_NAV']
 
 def create_browser():
     fp = webdriver.FirefoxProfile()
