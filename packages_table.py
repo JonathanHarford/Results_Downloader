@@ -1,6 +1,4 @@
 import csv
-import codecs
-import cStringIO
 import re
 
 EFFTYPES = {"A":"Prsp",
@@ -17,53 +15,24 @@ EFFTYPES = {"A":"Prsp",
 
 class PackagesTable(list):
 
-    class UnicodeWriter:
-        """
-        A CSV writer which will write rows to CSV file "f",
-        which is encoded in the given encoding.
-        """
-
-        def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
-            # Redirect output to a queue
-            self.queue = cStringIO.StringIO()
-            self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
-            self.stream = f
-            self.encoder = codecs.getincrementalencoder(encoding)()
-
-        def writerow(self, row):
-            self.writer.writerow([unicode(s).encode("utf-8") for s in row])
-            # Fetch UTF-8 output from the queue ...
-            data = self.queue.getvalue()
-            data = data.decode("utf-8")
-            # ... and reencode it into the target encoding
-            data = self.encoder.encode(data)
-            # write to the target stream
-            self.stream.write(data)
-            # empty queue
-            self.queue.truncate(0)
-
-        def writerows(self, rows):
-            for row in rows:
-                self.writerow(row)
-
     def __init__(self, *args):
         self.fieldnames = list(args)
 
-    def __str__(self):
-        s = []
-        for rec in self:
-            for i in range(len(self.fieldnames)):
-                s.append(self.fieldnames[i] + ": " + rec[i])
-            s.append("\n")
-        return "\n".join(s)
+#     def __str__(self):
+#         s = []
+#         for rec in self:
+#             for i in range(len(self.fieldnames)):
+#                 s.append(self.fieldnames[i] + ": " + rec[i])
+#             s.append("\n")
+#         return "\n".join(s)
 
     def addrecord(self, record):
         self.append(list(record))
 
-    def addfield(self, pos, fieldname, defaultval=""):
-        self.fieldnames.insert(pos,fieldname)
-        for rec in self:
-            rec.insert(pos, defaultval)
+#     def addfield(self, pos, fieldname, defaultval=""):
+#         self.fieldnames.insert(pos,fieldname)
+#         for rec in self:
+#             rec.insert(pos, defaultval)
 
     def filter_efforts(self):
 
@@ -109,6 +78,8 @@ class PackagesTable(list):
                 rec[8] = "12m"
 
     def writetocsv(self, filename):
-        writer = self.UnicodeWriter(open(filename, 'wb'))
-        writer.writerow(self.fieldnames)
-        writer.writerows(self)
+        with open(filename, 'w') as f:
+            writer = csv.writer(f, dialect=csv.excel, lineterminator='\n')
+            print(self.fieldnames)
+            writer.writerow(self.fieldnames)
+            writer.writerows(self)

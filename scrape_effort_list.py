@@ -22,7 +22,7 @@ def create_browser():
 
 def download_package_list(b, nav):
 
-    print("Browsing to " + nav['URL'])
+    print(("Browsing to " + nav['URL']))
     b.get(nav['URL']) # Load page
 
     # Page: Login
@@ -47,7 +47,7 @@ def download_package_list(b, nav):
     table = []
     for package, packcode, mailmonth, mailday, mailyear in findall:
         maildate = datetime.date(int(mailyear), int(mailmonth), int(mailday))
-        if packcode == u'\xa0': packcode = ""     # Why isn't packcode "&nbsp;"?
+        if packcode == '\xa0': packcode = ""     # Why isn't packcode "&nbsp;"?
         table.append((package, nav['org'], "", packcode, maildate, ff_date, "", "", ""))
     return (table, ff_date.isoformat())
 

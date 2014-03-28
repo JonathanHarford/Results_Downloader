@@ -55,10 +55,10 @@ if __name__ == "__main__":
                 if filename != efflist:
                     os.remove(filename)
         
-    print("Working with " + efflist)
+    print(("Working with " + efflist))
     
     # Create list of which efforts we want results for
-    packages_to_download = [line.strip().split("\t") for line in open(efflist, 'rb').readlines()]
+    packages_to_download = [line.strip().split("\t") for line in open(efflist)]
 
     us_pkgs_download = [pkg for org, pkg in packages_to_download if org==US_NAV['org']]
     ny_pkgs_download = [pkg for org, pkg in packages_to_download if org==NY_NAV['org']]

@@ -24,7 +24,7 @@ def download_from_site(nav, efforts_to_download, DOWNLOAD_ATTEMPT_DURATION = 120
     b = webdriver.Firefox(firefox_profile=fp) # Get local session of Firefox
     b.implicitly_wait(120)
 
-    print("Browsing to " + nav['URL'])
+    print(("Browsing to " + nav['URL']))
     b.get(nav['report_url']) # Load page
 
     # Page: Login
@@ -42,9 +42,9 @@ def download_from_site(nav, efforts_to_download, DOWNLOAD_ATTEMPT_DURATION = 120
         try:
             el = b.find_element_by_xpath(my_xpath)
             el.click()
-            print("TICKED:    " + effort_name)
+            print(("TICKED:    " + effort_name))
         except:
-            print("NOT FOUND: " + effort_name)
+            print(("NOT FOUND: " + effort_name))
     b.implicitly_wait(120)
 
     # Click "Add"
@@ -73,7 +73,7 @@ def download_from_site(nav, efforts_to_download, DOWNLOAD_ATTEMPT_DURATION = 120
         attempt_start_time = time.clock()
         attempt_end_time = attempt_start_time + DOWNLOAD_ATTEMPT_DURATION
 
-        print('Download attempt {} at {}').format(try_num + 1, strftime('''%H:%M:%S'''))
+        print(('Download attempt {} at {}').format(try_num + 1, strftime('''%H:%M:%S''')))
 
         b.find_element_by_id(nav['export_btn']).click()
 
