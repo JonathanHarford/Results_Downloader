@@ -13,6 +13,7 @@ TODO:
 -----
 
 * Downloads from both sites shouldn't be necessary
+* Separate GtoG results out to separate file? 
 * Logging
 * Join CPP tables
 * Use SQL instead of pandas?

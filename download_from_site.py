@@ -1,20 +1,18 @@
+#! python3
+
 import os
 import time
 from time import strftime
 
-
 from selenium import webdriver
 
 # Load Configuration
-import json
-config = json.load(open('config.json'))
-USERNAME = config['USERNAME']
-PASSWORD = config['PASSWORD']
+from config import USERNAME, PASSWORD  # @UnresolvedImport
 
 #from excel_ennumerations import *
 
-def download_from_site(nav, efforts_to_download, DOWNLOAD_ATTEMPT_DURATION = 120, NUM_DOWNLOAD_ATTEMPTS = 10):
-    if len(efforts_to_download) == 0:
+def download_from_site(nav, packages_to_download, DOWNLOAD_ATTEMPT_DURATION = 120, NUM_DOWNLOAD_ATTEMPTS = 10):
+    if len(packages_to_download) == 0:
         return False
 
     fp = webdriver.FirefoxProfile()
@@ -41,16 +39,16 @@ def download_from_site(nav, efforts_to_download, DOWNLOAD_ATTEMPT_DURATION = 120
 
     assert "Untitled Page" in b.title
 
-    # Let's tick the checkboxes for EVERY effort whose results we'd like to download.
+    # Let's tick the checkboxes for EVERY package whose results we'd like to download.
     b.implicitly_wait(0)
-    for effort_name in efforts_to_download:
-        my_xpath = "//span[text()='" + effort_name + "']/../../td/input"
+    for package_name in packages_to_download:
+        my_xpath = "//span[text()='" + package_name + "']/../../td/input"
         try:
             el = b.find_element_by_xpath(my_xpath)
             el.click()
-            print(("TICKED:    " + effort_name))
+            print(("TICKED:    " + package_name))
         except:
-            print(("NOT FOUND: " + effort_name))
+            print(("NOT FOUND: " + package_name))
     b.implicitly_wait(120)
 
     # Click "Add"

@@ -1,10 +1,10 @@
+#! python3
+
 import csv
 import re
 
 # Load Configuration
-import json
-config = json.load(open('config.json'))
-EFFTYPES = config['EFFTYPES']
+from config import EFFTYPES  # @UnresolvedImport
 
 class PackagesTable(list):
 
@@ -24,7 +24,6 @@ class PackagesTable(list):
             else:
                 del self[recnum]
                 continue
-
 
         age_6m  = set()
         age_12m = set()

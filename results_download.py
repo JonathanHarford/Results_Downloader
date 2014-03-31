@@ -1,13 +1,14 @@
+#! python3
 """
-Usage: results_download.py [--set=<set>|--efflist=<filename>] [-k | --keeplists] [-l | --keepdl]
+Usage: results_download.py [--pkgset=<pkgset>|--pkglist=<filename>] [-k | --keeplists] [-l | --keepdl]
        results_download.py (-h | --help)
 
 Options:
   -h --help             Show this screen.
   -k --keeplists        Don't delete scraped lists.
   -l --keepdl           Don't delete original downloads after processing.  
-  --set=<set>           Download <set> of results, e.g. "6m", "12m", "DFLN"
-  --efflist=<filename>  Use a particular list of efforts instead of a 
+  --pkgset=<pkgset>     Download <set> of results, e.g. "6m", "12m", "DFLN"
+  --pkglist=<filename>  Use a particular list of packages instead of a 
                         standard results set.
 """
 #  --quiet               print less text
@@ -19,16 +20,14 @@ from time import strftime
 import pandas as pd
 from docopt import docopt
 
-import scrape_effort_list
+from create_pkg_tables import create_pkg_tables
+from scrape_pkgs import scrape_pkgs
 
 from download_from_site import download_from_site
 # import join_cpps 
 
 # Load Configuration
-import json
-config = json.load(open('config.json'))
-US_NAV = config['US_NAV']
-NY_NAV = config['NY_NAV']
+from config import US_NAV, NY_NAV  # @UnresolvedImport
 
 def to_iso8601(x):
     '''Convert a datetime to ISO8601 string.'''
@@ -36,33 +35,34 @@ def to_iso8601(x):
 
 if __name__ == "__main__":
     args = docopt(__doc__)
-    # print(args)
     
-    efflist = args['--efflist']
-    if efflist is None:
-        scrapefiles = scrape_effort_list.main() # Download effort lists
-    
-        # If no set (or efflist), we're done once we've downloaded and processed the lists!
-        effset = args['--set']
-        if effset is None:
+    pkglist = args['--pkglist']
+    if pkglist is None:
+ 
+        t, us_ff_str, ny_ff_str = scrape_pkgs()
+        pkglists = create_pkg_tables(t, us_ff_str, ny_ff_str)
+        
+        # If no set (or pkglist), we're done once we've downloaded and processed the lists!
+        pkgset = args['--pkgset']
+        if pkgset is None:
             sys.exit()
         
-        # Figure out which effort list matches the type of download we want to do (6m, 12m, or DFLN)
+        # Figure out which package list matches the type of download we want to do (6m, 12m, or DFLN)
         for filename in os.listdir('.'):
-            if filename.startswith(effset):
-                efflist = filename
+            if filename.startswith(pkgset):
+                pkglist = filename
                 break
 
         # Delete scraped lists (unless we shouldn't)
         if not args['--keeplists']:
-            for filename in scrapefiles:
-                if filename != efflist:
+            for filename in pkglists:
+                if filename != pkglist:
                     os.remove(filename)
         
-    print(("Working with " + efflist))
+    print(("Working with " + pkglist))
     
-    # Create list of which efforts we want results for
-    packages_to_download = [line.strip().split("\t") for line in open(efflist)]
+    # Create list of which packages we want results for
+    packages_to_download = [line.strip().split("\t") for line in open(pkglist)]
 
     us_pkgs_download = [pkg for org, pkg in packages_to_download if org==US_NAV['org']]
     ny_pkgs_download = [pkg for org, pkg in packages_to_download if org==NY_NAV['org']]
@@ -108,7 +108,7 @@ if __name__ == "__main__":
         df[col]  = df[col].apply(to_iso8601)
         
     print('Saving merged results reports...') # CSV is much faster than XLSX
-    df.to_csv(os.path.splitext(efflist)[0] + ' RAW.csv', encoding='utf-8', index_label='Mail Code')
+    df.to_csv(os.path.splitext(pkglist)[0] + ' RAW.csv', encoding='utf-8', index_label='Mail Code')
 
 
 
