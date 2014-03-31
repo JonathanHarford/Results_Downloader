@@ -12,7 +12,8 @@ from config import USERNAME, PASSWORD  # @UnresolvedImport
 #from excel_ennumerations import *
 
 def download_from_site(nav, packages_to_download, DOWNLOAD_ATTEMPT_DURATION = 120, NUM_DOWNLOAD_ATTEMPTS = 10):
-    if len(packages_to_download) == 0:
+
+    if not packages_to_download:
         return False
 
     fp = webdriver.FirefoxProfile()

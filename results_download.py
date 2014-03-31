@@ -27,7 +27,7 @@ from download_from_site import download_from_site
 # import join_cpps 
 
 # Load Configuration
-from config import US_NAV, NY_NAV  # @UnresolvedImport
+from config import US_NAV, NY_NAV, RESULTS_COLS  # @UnresolvedImport
 
 def to_iso8601(x):
     '''Convert a datetime to ISO8601 string.'''
@@ -72,6 +72,7 @@ if __name__ == "__main__":
     # Firefox troubles from two browsers using the same profile.
 
     # Download results to files
+    
     download_from_site(US_NAV, us_pkgs_download)
     download_from_site(NY_NAV, ny_pkgs_download)
 
@@ -80,34 +81,38 @@ if __name__ == "__main__":
     now_str = strftime('''%Y%m%d-%H%M%S''')
     us_filename = 'US Results ' + now_str + '.xls'
     ny_filename = 'NY Results ' + now_str + '.xls'
-    os.rename(US_NAV['filename'], us_filename)
-    os.rename(NY_NAV['filename'], ny_filename)
+    
 
+    df = pd.DataFrame()
     print("Opening reports...")
-    with pd.ExcelFile(us_filename) as xls:
-        tabname = xls.sheet_names[0]
-        df1 = xls.parse(tabname, index_col=1, parse_dates=['FF Date','Mail Date'])
-    
-    with pd.ExcelFile(ny_filename) as xls:
-        tabname = xls.sheet_names[0]
-        df2 = xls.parse(tabname, index_col=1, parse_dates=['FF Date','Mail Date'])
 
-    # Remember the right order of columns, because 'append' alphasorts:
-    col_order = df1.columns
-    print("Merging reports...") 
-    df = df1.append(df2)
-    df = df[col_order] 
+    if us_pkgs_download:
+        os.rename(US_NAV['filename'], us_filename)
+        with pd.ExcelFile(us_filename) as xls:
+            tabname = xls.sheet_names[0]
+            df = df.append(xls.parse(tabname, index=None, parse_dates=['FF Date','Mail Date']))
+
+        if not args['--keepdl']:
+            os.remove(us_filename)
+            
+    if ny_pkgs_download:
+        os.rename(NY_NAV['filename'], ny_filename)
+        with pd.ExcelFile(ny_filename) as xls:
+            tabname = xls.sheet_names[0]
+            df = df.append(xls.parse(tabname, index=None, parse_dates=['FF Date','Mail Date']))
+        
+        if not args['--keepdl']:
+            os.remove(ny_filename)
     
-    # Delete the downloaded files (unless we shouldn't)
-    if not args['--keepdl']:
-        os.remove(us_filename)
-        os.remove(ny_filename)
+    df = df[RESULTS_COLS].set_index(['Mail Code'])
     
+    print('Saving merged results reports...') 
+   
     # Dates are ugly unless we do this:
     for col in ('Mail Date', 'FF Date', 'First Date', 'Pack Date'):
         df[col]  = df[col].apply(to_iso8601)
-        
-    print('Saving merged results reports...') # CSV is much faster than XLSX
+
+    # CSV is much faster than XLSX        
     df.to_csv(os.path.splitext(pkglist)[0] + ' RAW.csv', encoding='utf-8', index_label='Mail Code')
 
 
