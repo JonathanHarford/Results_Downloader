@@ -1,6 +1,6 @@
 #! python3
 """
-Usage: results_download.py [--pkgset=<pkgset>|--pkglist=<filename>] [-k | --keeplists] [-l | --keepdl]
+Usage: results_download.py [--pkgset=<pkgset>|--pkglist=<filename>] [-k | --keeplists] [-l | --keepdl] [--quiet]
        results_download.py (-h | --help)
 
 Options:
@@ -10,19 +10,20 @@ Options:
   --pkgset=<pkgset>     Download <set> of results, e.g. "6m", "12m", "DFLN"
   --pkglist=<filename>  Use a particular list of packages instead of a 
                         standard results set.
+  --quiet               print less text              
 """
-#  --quiet               print less text
+
 
 import sys
 import os
 from time import strftime
+import logging
 
 import pandas as pd
 from docopt import docopt
 
 from create_pkg_tables import create_pkg_tables
 from scrape_pkgs import scrape_pkgs
-
 from download_from_site import download_from_site
 # import join_cpps 
 
@@ -35,6 +36,11 @@ def to_iso8601(x):
 
 if __name__ == "__main__":
     args = docopt(__doc__)
+
+    if not args['--quiet']:
+        logging.basicConfig(level=logging.INFO, 
+                            format='%(asctime)s %(levelname)-6s %(message)s',
+                            datefmt='%H:%M:%S')
     
     pkglist = args['--pkglist']
     if pkglist is None:
@@ -59,7 +65,7 @@ if __name__ == "__main__":
                 if filename != pkglist:
                     os.remove(filename)
         
-    print(("Working with " + pkglist))
+    logging.info("Working with " + pkglist)
     
     # Create list of which packages we want results for
     packages_to_download = [line.strip().split("\t") for line in open(pkglist)]
@@ -77,14 +83,14 @@ if __name__ == "__main__":
     download_from_site(NY_NAV, ny_pkgs_download)
 
     # Rename results files, adding timestamp
-    print("Renaming reports...")
+    logging.info("Renaming reports...")
     now_str = strftime('''%Y%m%d-%H%M%S''')
     us_filename = 'US Results ' + now_str + '.xls'
     ny_filename = 'NY Results ' + now_str + '.xls'
     
 
     df = pd.DataFrame()
-    print("Opening reports...")
+    logging.info("Opening reports...")
 
     if us_pkgs_download:
         os.rename(US_NAV['filename'], us_filename)
@@ -106,7 +112,7 @@ if __name__ == "__main__":
     
     df = df[RESULTS_COLS].set_index(['Mail Code'])
     
-    print('Saving merged results reports...') 
+    logging.info('Saving merged results reports...') 
    
     # Dates are ugly unless we do this:
     for col in ('Mail Date', 'FF Date', 'First Date', 'Pack Date'):

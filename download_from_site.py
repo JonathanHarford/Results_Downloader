@@ -3,6 +3,7 @@
 import os
 import time
 from time import strftime
+import logging
 
 from selenium import webdriver
 
@@ -25,11 +26,11 @@ def download_from_site(nav, packages_to_download, DOWNLOAD_ATTEMPT_DURATION = 12
     fp.set_preference("browser.download.dir", os.getcwd())
     fp.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/vnd.ms-excel")
 
-    print("Creating browser...")
+    logging.info("Creating browser...")
     b = webdriver.Firefox(firefox_profile=fp) # Get local session of Firefox
     b.implicitly_wait(120)
 
-    print(("Browsing to " + nav['URL']))
+    logging.info(("Browsing to " + nav['URL']))
     b.get(nav['report_url']) # Load page
 
     # Page: Login
@@ -47,16 +48,16 @@ def download_from_site(nav, packages_to_download, DOWNLOAD_ATTEMPT_DURATION = 12
         try:
             el = b.find_element_by_xpath(my_xpath)
             el.click()
-            print(("TICKED:    " + package_name))
+            logging.info(("TICKED:    " + package_name))
         except:
-            print(("NOT FOUND: " + package_name))
+            logging.info(("NOT FOUND: " + package_name))
     b.implicitly_wait(120)
 
     # Click "Add"
     b.find_element_by_id(nav['add_btn']).click()
 
     # Click "Export Records"
-    print("Exporting...")
+    logging.info("Exporting...")
 
     file_is_downloaded = False
 
@@ -78,7 +79,7 @@ def download_from_site(nav, packages_to_download, DOWNLOAD_ATTEMPT_DURATION = 12
         attempt_start_time = time.clock()
         attempt_end_time = attempt_start_time + DOWNLOAD_ATTEMPT_DURATION
 
-        print(('Download attempt {} at {}').format(try_num + 1, strftime('''%H:%M:%S''')))
+        logging.info(('Download attempt {} at {}').format(try_num + 1, strftime('''%H:%M:%S''')))
 
         b.find_element_by_id(nav['export_btn']).click()
 
@@ -88,7 +89,7 @@ def download_from_site(nav, packages_to_download, DOWNLOAD_ATTEMPT_DURATION = 12
             try:
                 filesize = os.path.getsize(nav['filename'])
                 if filesize > 1:
-                    print('Download successful.')
+                    logging.info('Download successful.')
                     file_is_downloaded = True
                     break
             except WindowsError:
@@ -98,7 +99,7 @@ def download_from_site(nav, packages_to_download, DOWNLOAD_ATTEMPT_DURATION = 12
         if file_is_downloaded:
             break
         else:
-            print('Timed out.')
+            logging.info('Timed out.')
 
-    print("Closing browser...")
+    logging.info("Closing browser...")
     b.quit()

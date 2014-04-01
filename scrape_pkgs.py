@@ -4,6 +4,7 @@
 import os
 import re
 import datetime
+import logging
 
 # Lovely packages others have written
 from selenium import webdriver
@@ -19,7 +20,7 @@ def scrape_pkgs():
         fp = webdriver.FirefoxProfile()
         fp.set_preference("browser.download.dir", os.getcwd())
         fp.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/vnd.ms-excel")
-        print("Creating browser...")
+        logging.info("Creating browser...")
         # Get local session of Firefox
         b = webdriver.Firefox(firefox_profile=fp)
         b.implicitly_wait(10)
@@ -27,7 +28,7 @@ def scrape_pkgs():
     
     def scrape_package_list(b, nav):
 
-        print(("Browsing to " + nav['URL']))
+        logging.info(("Browsing to " + nav['URL']))
         b.get(nav['URL']) # Load page
     
         # Page: Login

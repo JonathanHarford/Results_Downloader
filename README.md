@@ -12,7 +12,6 @@ Via selenium again, download_from_site.py downloads the results (xls) from the t
 TODO:
 -----
 
-* Downloads from both sites shouldn't be necessary
 * Separate GtoG results out to separate file? 
 * Logging
 * Join CPP tables
