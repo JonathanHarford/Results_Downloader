@@ -8,8 +8,10 @@ def report_to_csv(df, filename):
         return dt.strftime('%Y-%m-%d') if (dt > pd.datetime(1900,1,1)) else ''
     
     # Dates are ugly unless we do this:
-    for col in ('Mail Date', 'FF Date', 'First Date', 'Pack Date'):
-        df[col]  = df[col].apply(to_iso8601)
+    for col in df.columns:
+        if "Date" in col:
+        # ('Mail Date', 'FF Date', 'First Date', 'Pack Date')
+            df[col]  = df[col].apply(to_iso8601)
         
     # CSV is much faster than XLSX:
     df.to_csv(filename, encoding='utf-8', index_label='Mail Code')
