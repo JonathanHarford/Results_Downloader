@@ -9,8 +9,7 @@ def report_to_csv(df, filename):
     
     # Dates are ugly unless we do this:
     for col in df.columns:
-        if "Date" in col:
-        # ('Mail Date', 'FF Date', 'First Date', 'Pack Date')
+        if df[col].dtype.str == '<M8[ns]':
             df[col]  = df[col].apply(to_iso8601)
         
     # CSV is much faster than XLSX:
