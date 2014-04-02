@@ -1,13 +1,28 @@
 Results_Downloader
 ==================
+```
+Download and combine results spreadsheets from a number of (very similar) websites.
 
-Scripts I use weekly to download and combine results spreadsheets from two (very similar) websites.
+Usage: results_download.py [--pkgset=<pkgset>|--pkglist=<filename>] [-k | --keeplists] [-l | --keepdl] [--quiet]
+       results_download.py (-h | --help)
 
-results_download.py first runs scrape_effort_list.py to drive (via Selenium) a Firefox instance to the websites, scrape a list of possible downloads, then filter the list into three sets: efforts that are 6 months old, efforts that are 12 months old, and DFLN efforts.
+Options:
+  -h --help             Show this screen.
+  -k --keeplists        Don't delete scraped lists.
+  -l --keepdl           Don't delete original downloads after processing.  
+  --pkgset=<pkgset>     Download <set> of results, e.g. "6m", "12m", "DFLN"
+  --pkglist=<filename>  Use a particular list of packages instead of a 
+                        standard results set.
+  --quiet               print less text
+```
 
-If results_download.py was given an argument of "6m", "12m", or "DFNL", it inputs the relevant just-scraped list into download_from_site.py.
+(As you don't know these websites (I keep all info about them in an untracked config.json), this surely has no practical use for you beyond seeing what kind of code I write.)
 
-Via selenium again, download_from_site.py downloads the results (xls) from the two sites. It then uses pandas to open these results spreadsheets in Excel and merge them into one xlsx file.
+* scrape_pkgs drives (via [Selenium](http://docs.seleniumhq.org/)) a [Firefox](http://www.mozilla.org/en-US/firefox/) instance to the websites and scrapes a list of packages from each, which then get merged together.
+* create_pkg_tables creates tables (i.e. CSV and TXT files) from this list.
+* download_from_site takes a list of packages (derived from the previous tables) to get results for, and downloads the appropriate results (as XLS).
+* merge_raw_reports merges these raw results into one pandas DataFrame
+* report_to_csv takes that DataFrame and spits out a nice CSV file.
 
 TODO:
 -----

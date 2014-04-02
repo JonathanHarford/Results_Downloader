@@ -1,5 +1,7 @@
 #! python3
 """
+results_download: Download and combine results spreadsheets from a number of (very similar) websites.
+
 Usage: results_download.py [--pkgset=<pkgset>|--pkglist=<filename>] [-k | --keeplists] [-l | --keepdl] [--quiet]
        results_download.py (-h | --help)
 
@@ -10,7 +12,7 @@ Options:
   --pkgset=<pkgset>     Download <set> of results, e.g. "6m", "12m", "DFLN"
   --pkglist=<filename>  Use a particular list of packages instead of a 
                         standard results set.
-  --quiet               print less text              
+  --quiet               print less text
 """
 
 
@@ -20,8 +22,8 @@ import logging
 
 from docopt import docopt
 
-from create_pkg_tables import create_pkg_tables
 from scrape_pkgs import scrape_pkgs
+from create_pkg_tables import create_pkg_tables
 from download_from_site import download_from_site
 from merge_raw_reports import merge_raw_reports
 from report_to_csv import report_to_csv
