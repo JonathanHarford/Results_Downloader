@@ -11,7 +11,7 @@ from selenium import webdriver
 
 # My own modules
 from packages_table import PackagesTable
-from config import USERNAME, PASSWORD, US_NAV, NY_NAV # @UnresolvedImport
+from config import SITES # @UnresolvedImport
 
 def scrape_pkgs():
     
@@ -35,8 +35,8 @@ def scrape_pkgs():
         ## wait_until_element_loads(b, b.title)
         assert "Untitled Page" in b.title
     
-        b.find_element_by_id(nav['username']).send_keys(USERNAME)
-        b.find_element_by_id(nav['password']).send_keys(PASSWORD)
+        b.find_element_by_id(nav['username_fld']).send_keys(nav['username'])
+        b.find_element_by_id(nav['password_fld']).send_keys(nav['password'])
         b.find_element_by_id(nav['login_btn']).click()
     
         # Page: "HOME"
@@ -69,15 +69,15 @@ def scrape_pkgs():
                       "Age",
                       "Results Group")
     
-    (us_table, us_ff_str) = scrape_package_list(b, US_NAV)
-    for row in us_table:
-        t.addrecord(row)
-
-    (ny_table, ny_ff_str) = scrape_package_list(b, NY_NAV)
-    for row in ny_table:
-        t.addrecord(row)
+    ff_strs = []
+    
+    for site in SITES:
+        (tbl, ff_str) = scrape_package_list(b, site)
+        ff_strs.append((site['org'], ff_str))
+        for row in tbl:
+            t.addrecord(row)
 
     b.quit()
     
-    return t, us_ff_str, ny_ff_str
+    return t, ff_strs
     

@@ -13,6 +13,4 @@ TODO:
 -----
 
 * Separate GtoG results out to separate file? 
-* Logging
 * Join CPP tables
-* Use SQL instead of pandas?

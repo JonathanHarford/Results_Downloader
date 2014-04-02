@@ -13,10 +13,8 @@ Options:
   --quiet               print less text              
 """
 
-
 import os
 import logging
-from time import strftime
 
 import pandas as pd
 
@@ -50,12 +48,11 @@ def merge_raw_reports(raw_report_fns, savename, keepdl=False):
         if not keepdl:
             os.remove(fn)
     
-    df = df[RESULTS_COLS].set_index(['Mail Code'])
+    df = df[RESULTS_COLS].set_index(['Mail Code']) # Set index AND reorder columns
     
-    logging.info('Saving merged results reports...') 
-   
+    logging.info('Saving merged results reports...')    
     report_to_csv(df, savename)
-    
+
     return df
 
 

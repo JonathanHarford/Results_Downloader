@@ -7,12 +7,9 @@ import logging
 
 from selenium import webdriver
 
-# Load Configuration
-from config import USERNAME, PASSWORD  # @UnresolvedImport
-
 #from excel_ennumerations import *
 
-def download_from_site(nav, packages_to_download, DOWNLOAD_ATTEMPT_DURATION = 120, NUM_DOWNLOAD_ATTEMPTS = 10):
+def download_from_site(nav, packages_to_download, DOWNLOAD_ATTEMPT_DURATION = 180, NUM_DOWNLOAD_ATTEMPTS = 10):
 
     if not packages_to_download:
         return False
@@ -35,8 +32,8 @@ def download_from_site(nav, packages_to_download, DOWNLOAD_ATTEMPT_DURATION = 12
 
     # Page: Login
     assert "Untitled Page" in b.title
-    b.find_element_by_id(nav['username']).send_keys(USERNAME)
-    b.find_element_by_id(nav['password']).send_keys(PASSWORD)
+    b.find_element_by_id(nav['username_fld']).send_keys(nav['username'])
+    b.find_element_by_id(nav['password_fld']).send_keys(nav['password'])
     b.find_element_by_id(nav['login_btn']).click()
 
     assert "Untitled Page" in b.title
@@ -93,7 +90,7 @@ def download_from_site(nav, packages_to_download, DOWNLOAD_ATTEMPT_DURATION = 12
                     file_is_downloaded = True
                     break
             except WindowsError:
-                #sys.stdout.write('.')
+                # Keep waiting...
                 pass
 
         if file_is_downloaded:
@@ -103,3 +100,8 @@ def download_from_site(nav, packages_to_download, DOWNLOAD_ATTEMPT_DURATION = 12
 
     logging.info("Closing browser...")
     b.quit()
+    
+    new_filename = nav['org'] + ' Results FF ' + strftime('''%Y%m%d-%H%M%S''') + '.xls'
+    os.rename(nav['filename'], new_filename)
+    
+    return new_filename
