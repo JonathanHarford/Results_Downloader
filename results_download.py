@@ -18,31 +18,17 @@ import sys
 import os
 import logging
 
-import pandas as pd
 from docopt import docopt
 
 from create_pkg_tables import create_pkg_tables
 from scrape_pkgs import scrape_pkgs
 from download_from_site import download_from_site
 from merge_raw_reports import merge_raw_reports
+from report_to_csv import report_to_csv
 # import join_cpps 
 
 # Load Configuration
 from config import SITES # @UnresolvedImport
-
-def to_iso8601(x):
-    '''Convert a datetime to ISO8601 string.'''
-    return x.strftime('%Y-%m-%d') if (x > pd.datetime(1900,1,1)) else ''
-
-def report_to_csv(df, filename):
-    """Convert dates to strings, and make a CSV with 'Mail Code' as the index."""
-    
-    # Dates are ugly unless we do this:
-    for col in ('Mail Date', 'FF Date', 'First Date', 'Pack Date'):
-        df[col]  = df[col].apply(to_iso8601)
-        
-    # CSV is much faster than XLSX:
-    df.to_csv(filename, encoding='utf-8', index_label='Mail Code')
 
 if __name__ == "__main__":
     args = docopt(__doc__)
@@ -85,7 +71,6 @@ if __name__ == "__main__":
     # Firefox troubles from two browsers using the same profile.
 
     # Download results to files
-    
     raw_report_fns = []
     for site in SITES:
         site_pkgs = [pkg for org, pkg in packages_to_download if org==site['org']]
@@ -93,7 +78,9 @@ if __name__ == "__main__":
         if filename:
             raw_report_fns.append(filename)
 
-    df = merge_raw_reports(raw_report_fns, os.path.splitext(pkglist)[0] + ' RAW.csv', args['--keepdl'])
+    # Merge them into a Dataframe
+    df = merge_raw_reports(raw_report_fns, args['--keepdl'])
 
-
+    logging.info('Saving merged results reports...')    
+    report_to_csv(df, os.path.splitext(pkglist)[0] + ' RAW.csv')
 
