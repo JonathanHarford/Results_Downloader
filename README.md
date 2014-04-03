@@ -27,5 +27,6 @@ Options:
 TODO:
 -----
 
+* Tests
 * Separate GtoG results out to separate file? 
 * Join CPP tables

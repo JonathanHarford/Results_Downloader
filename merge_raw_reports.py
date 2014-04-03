@@ -34,4 +34,4 @@ def merge_raw_reports(raw_report_fns, keepdl=False):
         if not keepdl:
             os.remove(fn)
     
-    return df[RESULTS_COLS].set_index(['Mail Code']) # Set index AND reorder columns
+    return df[RESULTS_COLS] # Reorder columns

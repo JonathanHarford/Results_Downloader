@@ -1,7 +1,7 @@
 import pandas as pd
 
 def report_to_csv(df, filename):
-    """Convert dates to strings, and make a CSV with 'Mail Code' as the index."""
+    """Convert dates to strings, and make a CSV."""
 
     def to_iso8601(dt):
         '''Convert a datetime to ISO8601 string.'''
@@ -13,4 +13,4 @@ def report_to_csv(df, filename):
             df[col]  = df[col].apply(to_iso8601)
         
     # CSV is much faster than XLSX:
-    df.to_csv(filename, encoding='utf-8', index_label='Mail Code')
+    df.to_csv(filename + '.csv', encoding='utf-8', index_label=df.index.names)
