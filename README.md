@@ -27,6 +27,6 @@ Options:
 TODO:
 -----
 
+* It's nice to have one script that does everything, but it would make more sense to make each one completely standalone and pipe them.
 * Tests
 * Separate GtoG results out to separate file? 
-* Join CPP tables

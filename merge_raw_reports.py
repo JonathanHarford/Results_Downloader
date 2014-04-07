@@ -1,21 +1,18 @@
 #! python3
 """
-Usage: results_download.py [--pkgset=<pkgset>|--pkglist=<filename>] [-k | --keeplists] [-l | --keepdl] [--quiet]
+Usage: merge_raw_reports.py [-l | --keepdl] [--quiet]
        results_download.py (-h | --help)
 
 Options:
   -h --help             Show this screen.
-  -k --keeplists        Don't delete scraped lists.
   -l --keepdl           Don't delete original downloads after processing.  
-  --pkgset=<pkgset>     Download <set> of results, e.g. "6m", "12m", "DFLN"
-  --pkglist=<filename>  Use a particular list of packages instead of a 
-                        standard results set.
   --quiet               print less text              
 """
 
 import os
 import logging
 
+import docopt
 import pandas as pd
 
 # Load Configuration
@@ -35,3 +32,16 @@ def merge_raw_reports(raw_report_fns, keepdl=False):
             os.remove(fn)
     
     return df[RESULTS_COLS] # Reorder columns
+
+def main(args):
+    
+
+if __name__ == "__main__":
+    args = docopt(__doc__)
+
+    if not args['--quiet']:
+        logging.basicConfig(level=logging.INFO, 
+                            format='%(asctime)s %(levelname)-6s %(message)s',
+                            datefmt='%H:%M:%S')
+
+    main(args)

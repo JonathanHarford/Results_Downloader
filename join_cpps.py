@@ -1,10 +1,25 @@
 #! python3
+"""
+join_cpps: merge costs and descriptions into downloaded table
+
+Usage: join_cpps.py <filename> [-o OUTPUT] [--quiet]  
+       join_cpps.py (-h | --help)
+
+Options:
+  -h --help    Show this screen.
+  <filename>   Download results in filename's list of packages.
+  -o=<output>  Save as a new file instead of overwriting.
+  --quiet      Print less text
+"""
 
 import logging
 
+from docopt import docopt 
 import pandas as pd
-from config import CPP_DIR, LCPP_XLSX, PCPP_XLSX # @UnresolvedImport
-from config import LIST_DIR, LIST_XLSX # @UnresolvedImport
+from find_latest_file import find_latest_file
+from report_to_csv import report_to_csv
+from config import CPP_DIR # @UnresolvedImport
+from config import LIST_DIR # @UnresolvedImport
 from config import EFFTYPES # @UnresolvedImport
 
 def get_lasersplit(mc):
@@ -39,6 +54,8 @@ def join_cpps(df):
              'Qty Mailed','Total Donors','ND Count','Total Revenue']]
 
     ## Load List Costs
+    LCPP_XLSX = find_latest_file('List CPPs', CPP_DIR)
+    logging.info('List costs: ' + LCPP_XLSX) 
     lcpps = pd.read_excel(CPP_DIR + LCPP_XLSX, "List & Media CPPs", parse_cols="A,K,L") # G is List Desc
     
     logging.info('Merging in list costs...') 
@@ -47,11 +64,13 @@ def join_cpps(df):
     
     ## Rename some of the imported columns
     df = df.rename(columns={'Media CPP_ ':'List CPP', 'Est?':'LCPP Est?'})
-    
-    logging.info('Merging in production costs...')
+
+    PCPP_XLSX = find_latest_file('Prod CPPs', CPP_DIR)
+    logging.info('Prod costs: ' + PCPP_XLSX) 
     pcpps = pd.read_excel(CPP_DIR + PCPP_XLSX, "Prod CPPs", parse_cols='C,E,M,P')
     
     ## Merge in the Production Costs
+    logging.info('Merging in production costs...')
     df = df.set_index(['Eff','Lasersplit']).join(pcpps.set_index(['Eff','8&10']))
     df = df.reset_index()
     
@@ -65,6 +84,9 @@ def join_cpps(df):
     ## Now we take a bunch of slightly different tabs from a single 
     ## spreadsheet and merge them together (using 'EffType' to distinguish
     ## the originating tabs)
+
+    LIST_XLSX = find_latest_file('USO Prospect Code Log', LIST_DIR)
+    logging.info('List descs: ' + LIST_XLSX) 
     
     lists_DM =                 pd.read_excel(LIST_DIR + LIST_XLSX,
                                              "Direct Mail Codes", 
@@ -117,6 +139,24 @@ def join_cpps(df):
     
     logging.info('Merging in list descriptions...')
     df = df.set_index(['EffType','Listcode']).join(lists.set_index(['EffType','List Code']))
-    df = df.reset_index()
+    # df = df.reset_index()
 
     return df
+
+def main(args):
+    df = pd.read_csv(args['<filename>'])
+    df = join_cpps(df)
+    outputfilename = args['-o'] if args['-o'] else args['<filename>']
+    logging.info('Saving processed results...')
+    report_to_csv(df.set_index("Mailcode"), outputfilename)
+
+    
+if __name__ == "__main__":
+    args = docopt(__doc__)
+    print(args)
+    if not args['--quiet']:
+        logging.basicConfig(level=logging.INFO, 
+                            format='%(asctime)s %(levelname)-6s %(message)s',
+                            datefmt='%H:%M:%S')
+
+    main(args)

@@ -1,4 +1,15 @@
 #! python3
+"""
+scrape_pkgs: Scrape a list of packages from a list of websites.
+
+Usage: scrape_pkgs.py [--quiet]
+       scrape_pkgs.py (-h | --help)
+       
+
+Options:
+  -h --help              Show this screen.
+  --quiet                print less text
+"""
 
 # Standard library
 import os
@@ -7,16 +18,66 @@ import datetime
 import logging
 
 # Lovely packages others have written
+from docopt import docopt
 from selenium import webdriver
 
 # My own modules
 from packages_table import PackagesTable
 from config import SITES # @UnresolvedImport
 
+def create_pkg_tables(t, ff_strs):
+    
+    full_ff_str = ' '.join([org + ' FF ' + ff_str for org, ff_str in ff_strs])
+        
+    # Let's make a list of all filenames as we create them. 
+    filenames = []
+
+    # Save a table of every effort, even the ones we don't care about.
+    filename = "All Packages " + full_ff_str + ".csv"
+
+    filenames.append(filename)
+    t.writetocsv(filename)
+
+    t.filter_efforts()
+
+    # Save a lovely table of all packages we might deal with.
+    filename = "All Relevant Efforts "  + full_ff_str + ".csv"
+
+    filenames.append(filename)
+    t.writetocsv(filename)
+
+    # Save a list of all packages 6 months old and younger.
+    filename = "6m " + full_ff_str + ".txt"
+
+    filenames.append(filename)
+    with open(filename, "w") as f:
+        for rec in t:
+            if rec[8] == "6m":
+                f.write(rec[1] + "\t" + rec[0] + "\n")
+
+    # Save a list of all packages between 6 and 12 months old.
+    filename = "12m " + full_ff_str + ".txt"
+
+    filenames.append(filename)
+    with open(filename, "w") as f:
+        for rec in t:
+            if rec[8] == "12m":
+                f.write(rec[1] + "\t" + rec[0] + "\n")
+
+    # Save a list of all DFLN packages.
+    filename = "DFLN " + full_ff_str + ".txt"
+    
+    filenames.append(filename)
+    with open(filename, "w") as f:
+        for rec in t:
+            if rec[6] in ["PIns", "FSI", "NIns"] and (rec[4].year >= 2011) :
+                f.write(rec[1] + "\t" + rec[0] + "\n")
+
+    return filenames
+
 def scrape_pkgs():
     
     def create_browser():
-
         fp = webdriver.FirefoxProfile()
         fp.set_preference("browser.download.dir", os.getcwd())
         fp.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/vnd.ms-excel")
@@ -80,4 +141,19 @@ def scrape_pkgs():
     b.quit()
     
     return t, ff_strs
-    
+
+def main(args):
+    if not args['--quiet']:
+        logging.basicConfig(level=logging.INFO, 
+                            format='%(asctime)s %(levelname)-6s %(message)s',
+                            datefmt='%H:%M:%S')
+    t, ff_strs = scrape_pkgs()
+    return create_pkg_tables(t, ff_strs)
+
+if __name__ == "__main__":
+    args = docopt(__doc__)
+    main(args)
+
+
+
+

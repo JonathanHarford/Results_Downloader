@@ -1,12 +1,31 @@
 #! python3
+"""
+download_from_site: Download raw results from a number of (very similar) websites.
+
+Usage: download_from_site.py <filename> | --pkgset=<pkgset> [-l | --keepdl] [--quiet]  
+       download_from_site.py (-h | --help)
+
+Options:
+  -h --help             Show this screen.
+  <filename>            Download results in filename's list of packages.
+  --pkgset=<pkgset>     Download <set> of results, e.g. "6m", "12m", "DFLN"
+  -l --keepdl           Don't delete original downloads after processing.
+  --quiet               print less text
+"""
 
 import os
 import time
 from time import strftime
 import logging
 
+import pandas as pd
+from docopt import docopt
 from selenium import webdriver
 
+from find_latest_file import find_latest_file
+from report_to_csv import report_to_csv
+# Load Configuration
+from config import SITES, RESULTS_COLS # @UnresolvedImport
 #from excel_ennumerations import *
 
 def download_from_site(nav, packages_to_download, DOWNLOAD_ATTEMPT_DURATION = 180, NUM_DOWNLOAD_ATTEMPTS = 10):
@@ -101,7 +120,63 @@ def download_from_site(nav, packages_to_download, DOWNLOAD_ATTEMPT_DURATION = 18
     logging.info("Closing browser...")
     b.quit()
     
-    new_filename = nav['org'] + ' Results FF ' + strftime('''%Y%m%d-%H%M%S''') + '.xls'
+    new_filename = nav['org'] + ' Results FF ' + strftime('''%Y-%m-%d %H%M%S''') + '.xls'
     os.rename(nav['filename'], new_filename)
     
     return new_filename
+
+def merge_raw_reports(raw_report_fns, keepdl=False):
+
+    df = pd.DataFrame()
+    logging.info("Opening reports...")
+
+    for fn in raw_report_fns:
+        with pd.ExcelFile(fn) as xls:
+            tabname = xls.sheet_names[0]
+            df = df.append(xls.parse(tabname, index=None, parse_dates=['FF Date','Mail Date']))
+
+        if not keepdl:
+            os.remove(fn)
+    
+    return df[RESULTS_COLS] # Reorder columns
+
+def main(args):
+    pkglist = args['<filename>']
+    if pkglist is None:
+ 
+        # Figure out which package list matches the type of download we want to do (6m, 12m, or DFLN)
+        pkgset = args['--pkgset']
+        pkglist = find_latest_file(pkgset)
+            
+        logging.info("Working with " + pkglist)
+
+    # Create list of which packages we want results for
+    packages_to_download = [line.strip().split("\t") for line in open(pkglist)]
+
+    # Download the results for each site.
+    # We could do the downloads simultaneously (threads), but that causes 
+    # Firefox troubles from multiple browsers using the same profile.
+
+    # Download results to files
+    raw_report_fns = []
+    for site in SITES:
+        site_pkgs = [pkg for org, pkg in packages_to_download if org==site['org']]
+        filename = download_from_site(site, site_pkgs)
+        if filename:
+            raw_report_fns.append(filename)
+
+    # Merge them into a Dataframe
+    df = merge_raw_reports(raw_report_fns, args['--keepdl'])
+    
+    logging.info('Saving raw results...')    
+    report_to_csv(df.set_index("Mail Code"), os.path.splitext(pkglist)[0] + ' RAW')
+
+if __name__ == "__main__":
+    args = docopt(__doc__)
+
+    if not args['--quiet']:
+        logging.basicConfig(level=logging.INFO, 
+                            format='%(asctime)s %(levelname)-6s %(message)s',
+                            datefmt='%H:%M:%S')
+
+    main(args)
