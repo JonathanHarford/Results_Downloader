@@ -22,11 +22,10 @@ Options:
 * create_pkg_tables creates tables (i.e. CSV and TXT files) from this list.
 * download_from_site takes a list of packages (derived from the previous tables) to get results for, and downloads the appropriate results (as XLS).
 * merge_raw_reports merges these raw results into one pandas DataFrame
-* report_to_csv takes that DataFrame and spits out a nice CSV file.
+
 
 TODO:
 -----
-
-* It's nice to have one script that does everything, but it would make more sense to make each one completely standalone and pipe them.
 * Tests
-* Separate GtoG results out to separate file? 
+* Separate GtoG results out to separate file
+* Give warnings when list costs, production costs, or list descriptions aren't found

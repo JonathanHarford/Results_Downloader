@@ -24,7 +24,6 @@ from docopt import docopt
 from selenium import webdriver
 
 from find_latest_file import find_latest_file
-from report_to_csv import report_to_csv
 # Load Configuration
 from config import SITES, RESULTS_COLS # @UnresolvedImport
 #from excel_ennumerations import *
@@ -176,8 +175,6 @@ def main(args):
               quoting=csv.QUOTE_NONNUMERIC,
               date_format='%Y-%m-%d')
     
-    report_to_csv(df.set_index("Mail Code"), os.path.splitext(pkglist)[0] + ' RAW')
-
 if __name__ == "__main__":
     args = docopt(__doc__)
 

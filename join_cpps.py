@@ -154,7 +154,6 @@ def main(args):
     
 if __name__ == "__main__":
     args = docopt(__doc__)
-    print(args)
     if not args['--quiet']:
         logging.basicConfig(level=logging.INFO, 
                             format='%(asctime)s %(levelname)-6s %(message)s',
