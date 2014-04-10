@@ -1,6 +1,6 @@
 #! python3
 """
-download_from_site: Download raw results from a number of (very similar) websites.
+download_from_site: Download results from a number of (very similar) websites.
 
 Usage: download_from_site.py <filename> | --pkgset=<pkgset> [-l | --keepdl] [--quiet]  
        download_from_site.py (-h | --help)
@@ -17,6 +17,7 @@ import os
 import time
 from time import strftime
 import logging
+import csv
 
 import pandas as pd
 from docopt import docopt
@@ -127,18 +128,19 @@ def download_from_site(nav, packages_to_download, DOWNLOAD_ATTEMPT_DURATION = 18
 
 def merge_raw_reports(raw_report_fns, keepdl=False):
 
-    df = pd.DataFrame()
+    df = pd.DataFrame(columns=RESULTS_COLS)
     logging.info("Opening reports...")
 
     for fn in raw_report_fns:
         with pd.ExcelFile(fn) as xls:
             tabname = xls.sheet_names[0]
             df = df.append(xls.parse(tabname, index=None, parse_dates=['FF Date','Mail Date']))
-
         if not keepdl:
             os.remove(fn)
+            
+    df = df[RESULTS_COLS] # Reorder columns
     
-    return df[RESULTS_COLS] # Reorder columns
+    return df 
 
 def main(args):
     pkglist = args['<filename>']
@@ -168,7 +170,12 @@ def main(args):
     # Merge them into a Dataframe
     df = merge_raw_reports(raw_report_fns, args['--keepdl'])
     
-    logging.info('Saving raw results...')    
+    logging.info('Saving raw results...')
+    df.to_csv(os.path.splitext(pkglist)[0] + ' RAW.csv',
+              index=None, 
+              quoting=csv.QUOTE_NONNUMERIC,
+              date_format='%Y-%m-%d')
+    
     report_to_csv(df.set_index("Mail Code"), os.path.splitext(pkglist)[0] + ' RAW')
 
 if __name__ == "__main__":

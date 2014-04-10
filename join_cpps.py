@@ -2,22 +2,21 @@
 """
 join_cpps: merge costs and descriptions into downloaded table
 
-Usage: join_cpps.py <filename> [-o OUTPUT] [--quiet]  
+Usage: join_cpps.py <filename> [-o <output>] [--quiet]  
        join_cpps.py (-h | --help)
 
 Options:
   -h --help    Show this screen.
   <filename>   Download results in filename's list of packages.
-  -o=<output>  Save as a new file instead of overwriting.
+  -o <output>  Save as a new file instead of overwriting.
   --quiet      Print less text
 """
-
+import csv
 import logging
 
 from docopt import docopt 
 import pandas as pd
 from find_latest_file import find_latest_file
-from report_to_csv import report_to_csv
 from config import CPP_DIR # @UnresolvedImport
 from config import LIST_DIR # @UnresolvedImport
 from config import EFFTYPES # @UnresolvedImport
@@ -56,27 +55,27 @@ def join_cpps(df):
     ## Load List Costs
     LCPP_XLSX = find_latest_file('List CPPs', CPP_DIR)
     logging.info('List costs: ' + LCPP_XLSX) 
-    lcpps = pd.read_excel(CPP_DIR + LCPP_XLSX, "List & Media CPPs", parse_cols="A,K,L") # G is List Desc
+    lcpps = pd.read_excel(CPP_DIR + LCPP_XLSX, "List & Media CPPs")
+    lcpps = lcpps[['Mail Code','Media CPP_ ','Est?']]
+    lcpps = lcpps.rename(columns={'Mail Code':'Mailcode',
+                                  'Media CPP_ ':'List CPP', 
+                                  'Est?':'LCPP Est?'})
     
-    logging.info('Merging in list costs...') 
-    df = df.set_index(['Mailcode']).join(lcpps.set_index(['Mail Code']))
-    df = df.reset_index()
+    logging.info('Merging in list costs...')
+    df = pd.merge(df, lcpps, 'left', on='Mailcode')
     
-    ## Rename some of the imported columns
-    df = df.rename(columns={'Media CPP_ ':'List CPP', 'Est?':'LCPP Est?'})
-
     PCPP_XLSX = find_latest_file('Prod CPPs', CPP_DIR)
     logging.info('Prod costs: ' + PCPP_XLSX) 
-    pcpps = pd.read_excel(CPP_DIR + PCPP_XLSX, "Prod CPPs", parse_cols='C,E,M,P')
+    pcpps = pd.read_excel(CPP_DIR + PCPP_XLSX, "Prod CPPs")
+    pcpps = pcpps[['Eff', '8&10', 'Total Prd CPP', 'Estimated?']]
+    pcpps = pcpps.rename(columns={'8&10':'Lasersplit',
+                                  'Total Prd CPP':'Prod CPP', 
+                                  'Estimated?':'PCPP Est?'})
     
     ## Merge in the Production Costs
     logging.info('Merging in production costs...')
-    df = df.set_index(['Eff','Lasersplit']).join(pcpps.set_index(['Eff','8&10']))
-    df = df.reset_index()
+    df = pd.merge(df, pcpps, 'left', on=['Eff','Lasersplit'])
     
-    ## Rename some of the imported columns
-    df = df.rename(columns={'Total Prd CPP':'Prod CPP', 'Estimated?':'PCPP Est'})
-
     ## Some nice calulated columns
     df['List Cost'] = df['Qty Mailed'] * df['List CPP']
     df['Prod Cost'] = df['Qty Mailed'] * (df['Prod CPP'])
@@ -136,10 +135,10 @@ def join_cpps(df):
     
     ## Some list codes are inevitably numbers instead of strings, so:
     lists['List Code'] = lists['List Code'].apply(str)
+    lists = lists.rename(columns={'List Code': 'Listcode'})
     
     logging.info('Merging in list descriptions...')
-    df = df.set_index(['EffType','Listcode']).join(lists.set_index(['EffType','List Code']))
-    # df = df.reset_index()
+    df = pd.merge(df, lists, 'left', on=['EffType','Listcode'])
 
     return df
 
@@ -148,8 +147,10 @@ def main(args):
     df = join_cpps(df)
     outputfilename = args['-o'] if args['-o'] else args['<filename>']
     logging.info('Saving processed results...')
-    report_to_csv(df.set_index("Mailcode"), outputfilename)
-
+    df.to_csv(outputfilename,
+              index=None,
+              quoting=csv.QUOTE_NONNUMERIC, 
+              date_format='%Y-%m-%d')
     
 if __name__ == "__main__":
     args = docopt(__doc__)
